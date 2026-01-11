@@ -58,7 +58,7 @@ namespace OneGlobalDevicesApi.Application.Controllers
         public async Task<ActionResult<DeviceResponseDto>> FullyUpdateDeviceAsync(
             [FromServices] IDevicesCrudService service,
             Guid id,
-            [FromBody] DeviceUpdateRequestDTO request)
+            [FromBody] DeviceFullyUpdateRequestDTO request)
         {
             try
             {
@@ -113,7 +113,7 @@ namespace OneGlobalDevicesApi.Application.Controllers
         public async Task<ActionResult<DeviceResponseDto>> PartiallyUpdateDeviceAsync(
             [FromServices] IDevicesCrudService service,
             Guid id,
-            [FromBody] DeviceUpdateRequestDTO request)
+            [FromBody] DevicePartiallyUpdateRequestDTO request)
         {
             try
             {
