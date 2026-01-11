@@ -36,5 +36,31 @@ namespace OneGlobalDevicesApi.Infra.SQLServer.Connections
                 throw;
             }
         }
+
+        public async Task<DatabaseWork> CreateConnectionAndTransactionAsync(CancellationToken cancellationToken)
+        {
+            const string logPrefix = nameof(CreateConnectionAndTransactionAsync) + ". ";
+
+            try
+            {
+                var connection = await this.CreateConnectionAsync(cancellationToken);
+                var transaction = await connection.BeginTransactionAsync(cancellationToken);
+
+                return new DatabaseWork
+                {
+                    Connection = connection,
+                    Transaction = transaction
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{logPrefix}Error to open a SQL Server Connection. " +
+                    "Message: {message}",
+                    logPrefix,
+                    ex.Message
+                );
+                throw;
+            }
+        }
     }
 }

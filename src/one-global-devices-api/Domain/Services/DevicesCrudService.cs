@@ -107,8 +107,10 @@ namespace OneGlobalDevicesApi.Domain.Services
                 throw new DeviceBusinessException("At least one field (name, brand, state) must be provided for update.");
             }
 
-            using DbConnection connection = await _databaseConnection.CreateConnectionAsync(cancellationToken);
-            using DbTransaction transaction = await connection.BeginTransactionAsync(cancellationToken);
+            using var databaseWork = await _databaseConnection.CreateConnectionAndTransactionAsync(cancellationToken);
+
+            var connection = databaseWork.Connection;
+            var transaction = databaseWork.Transaction;
 
             DeviceEntity? currentDevice = await _deviceRepository.FetchByIdAsync(
                 deviceId: id, 
@@ -129,7 +131,6 @@ namespace OneGlobalDevicesApi.Domain.Services
             newName ??= currentDevice.Name;
             newBrand ??= currentDevice.Brand;
             newState ??= currentDevice.State;
-
 
             if (currentDevice.State == newState &&
                 currentDevice.Name.Equals(newName, StringComparison.InvariantCultureIgnoreCase) &&
@@ -176,8 +177,10 @@ namespace OneGlobalDevicesApi.Domain.Services
 
         public async Task DeleteSingleDeviceAsync(Guid id, CancellationToken cancellationToken)
         {
-            using DbConnection connection = await _databaseConnection.CreateConnectionAsync(cancellationToken);
-            using DbTransaction transaction = await connection.BeginTransactionAsync(cancellationToken);
+            using var databaseWork = await _databaseConnection.CreateConnectionAndTransactionAsync(cancellationToken);
+
+            var connection = databaseWork.Connection;
+            var transaction = databaseWork.Transaction;
 
             DeviceEntity? currentDevice = await _deviceRepository.FetchByIdAsync(
                 deviceId: id, 
