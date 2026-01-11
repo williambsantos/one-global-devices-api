@@ -24,64 +24,47 @@ namespace OneGlobalDevicesApi.Infra.SQLServer.Repositories
 
         public async Task SaveAsync(DeviceEntity entity, CancellationToken cancellationToken = default)
         {
-            string logPrefix = $"{nameof(DeviceSqlServerRepository)}.{nameof(SaveAsync)}. Id: {entity?.Id}. ";
+            string logPrefix = $"{nameof(SaveAsync)}. Id: {entity?.Id}. ";
 
             await LogActionAsync(logPrefix, async () =>
             {
-                try
-                {
-                    using var connection = await _databaseConnection.CreateSqlConnectionAsync(cancellationToken);
+                using var connection = await _databaseConnection.CreateSqlConnectionAsync(cancellationToken);
 
-                    var sql = $@"
+                var sql = $@"
 INSERT INTO {TableContants.DeviceTableName} 
 ([Id], [Name], [Brand], [State], [CreationTime])
 VALUES (@Id, @Name, @Brand, @State,@CreationTime);
 ";
 
-                    var parameters = new
-                    {
-                        Id = entity.Id,
-                        Name = entity.Name,
-                        Brand = entity.Brand,
-                        State = entity.State.ToString(),
-                        CreationTime = entity.CreationTime
-                    };
-
-                    var id = await connection.ExecuteScalarAsync<int>(new CommandDefinition(
-                        commandText: sql,
-                        parameters: parameters,
-                        commandTimeout: 30,
-                        commandType: CommandType.Text,
-                        cancellationToken: cancellationToken
-                    ));
-                    return id;
-                }
-                catch (Exception ex)
+                var parameters = new
                 {
-                    _logger.LogError(ex,
-                        "{logPrefix}Error at inserted Device at database. " +
-                        "Message: {message}. " +
-                        "ID: {clientCode}",
-                        logPrefix,
-                        ex.Message,
-                        entity.Id
-                    );
-                    throw;
-                }
+                    Id = entity.Id,
+                    Name = entity.Name,
+                    Brand = entity.Brand,
+                    State = entity.State.ToString(),
+                    CreationTime = entity.CreationTime
+                };
+
+                var rowsAffected = await connection.ExecuteAsync(new CommandDefinition(
+                    commandText: sql,
+                    parameters: parameters,
+                    commandTimeout: 30,
+                    commandType: CommandType.Text,
+                    cancellationToken: cancellationToken
+                ));
+                return rowsAffected;
             });
         }
 
         public async Task UpdateAsync(DeviceEntity entity, CancellationToken cancellationToken = default)
         {
-            string logPrefix = $"{nameof(DeviceSqlServerRepository)}.{nameof(UpdateAsync)}. Id: {entity?.Id}. ";
+            string logPrefix = $"{nameof(UpdateAsync)}. Id: {entity?.Id}. ";
 
             await LogActionAsync(logPrefix, async () =>
             {
-                try
-                {
-                    using var connection = await _databaseConnection.CreateSqlConnectionAsync(cancellationToken);
+                using var connection = await _databaseConnection.CreateSqlConnectionAsync(cancellationToken);
 
-                    var sql = $@"
+                var sql = $@"
 UPDATE {TableContants.DeviceTableName} 
 SET
     [Name]  = @Name,
@@ -90,78 +73,50 @@ SET
 WHERE Id = @Id
 ";
 
-                    var parameters = new
-                    {
-                        Name = entity.Name,
-                        Brand = entity.Brand,
-                        Id = entity.Id,
-                        State = entity.State.ToString()
-                    };
-
-                    var id = await connection.ExecuteScalarAsync<int>(new CommandDefinition(
-                        commandText: sql,
-                        parameters: parameters,
-                        commandTimeout: 30,
-                        commandType: CommandType.Text,
-                        cancellationToken: cancellationToken
-                    ));
-                    return id;
-                }
-                catch (Exception ex)
+                var parameters = new
                 {
-                    _logger.LogError(ex,
-                        "{logPrefix}Error at update Device at database. " +
-                        "Message: {message}. " +
-                        "ID: {clientCode}",
-                        logPrefix,
-                        ex.Message,
-                        entity.Id
-                    );
-                    throw;
-                }
+                    Name = entity.Name,
+                    Brand = entity.Brand,
+                    Id = entity.Id,
+                    State = entity.State.ToString()
+                };
+
+                var rowsAffected = await connection.ExecuteAsync(new CommandDefinition(
+                    commandText: sql,
+                    parameters: parameters,
+                    commandTimeout: 30,
+                    commandType: CommandType.Text,
+                    cancellationToken: cancellationToken
+                ));
+                return rowsAffected;
             });
         }
 
         public async Task DeleteAsync(Guid deviceId, CancellationToken cancellationToken = default)
         {
-            string logPrefix = $"{nameof(DeviceSqlServerRepository)}.{nameof(UpdateAsync)}. Id: {deviceId}. ";
+            string logPrefix = $"{nameof(UpdateAsync)}. Id: {deviceId}. ";
 
             await LogActionAsync(logPrefix, async () =>
             {
-                try
-                {
-                    using var connection = await _databaseConnection.CreateSqlConnectionAsync(cancellationToken);
+                using var connection = await _databaseConnection.CreateSqlConnectionAsync(cancellationToken);
 
-                    var sql = $@"
+                var sql = $@"
 DELETE {TableContants.DeviceTableName} 
 WHERE Id = @Id
 ";
-                    var parameters = new
-                    {
-                        Id = deviceId,
-                    };
-
-                    var id = await connection.ExecuteScalarAsync<int>(new CommandDefinition(
-                        commandText: sql,
-                        parameters: parameters,
-                        commandTimeout: 30,
-                        commandType: CommandType.Text,
-                        cancellationToken: cancellationToken
-                    ));
-                    return id;
-                }
-                catch (Exception ex)
+                var parameters = new
                 {
-                    _logger.LogError(ex,
-                        "{logPrefix}Error at update Device at database. " +
-                        "Message: {message}. " +
-                        "ID: {clientCode}",
-                        logPrefix,
-                        ex.Message,
-                        deviceId
-                    );
-                    throw;
-                }
+                    Id = deviceId,
+                };
+
+                var rowsAffected = await connection.ExecuteScalarAsync<int>(new CommandDefinition(
+                    commandText: sql,
+                    parameters: parameters,
+                    commandTimeout: 30,
+                    commandType: CommandType.Text,
+                    cancellationToken: cancellationToken
+                ));
+                return rowsAffected;
             });
         }
 
@@ -223,7 +178,7 @@ WHERE Id = @Id
             DeviceStateEnum? state,
             CancellationToken cancellationToken = default)
         {
-            string logPrefix = $"{nameof(DeviceSqlServerRepository)}.{nameof(InternalFetchByAsync)}. ";
+            string logPrefix = $"{nameof(InternalFetchByAsync)}. ";
 
             using var connection = await _databaseConnection.CreateSqlConnectionAsync(cancellationToken);
 

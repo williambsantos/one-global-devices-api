@@ -15,19 +15,19 @@ namespace OneGlobalDevicesApi.Domain.Services
     /// </summary>
     public interface IDevicesCrudService
     {
-        Task<DeviceEntity> CreateNewDeviceAsync(string name, string brand);
+        Task<DeviceEntity> CreateNewDeviceAsync(string name, string brand, CancellationToken cancellationToken);
 
-        Task<DeviceEntity> UpdateDeviceAsync(Guid id, string? newName, string? newBrand, DeviceStateEnum? newState);
+        Task<DeviceEntity> UpdateDeviceAsync(Guid id, string? newName, string? newBrand, DeviceStateEnum? newState, CancellationToken cancellationToken);
 
-        Task DeleteSingleDeviceAsync(Guid id);
+        Task DeleteSingleDeviceAsync(Guid id, CancellationToken cancellationToken);
 
-        Task<DeviceEntity> FetchSingleDeviceAsync(Guid id);
+        Task<DeviceEntity> FetchSingleDeviceAsync(Guid id, CancellationToken cancellationToken);
 
-        Task<IEnumerable<DeviceEntity>> FetchAllDevicesAsync();
+        Task<IEnumerable<DeviceEntity>> FetchAllDevicesAsync(CancellationToken cancellationToken);
 
-        Task<IEnumerable<DeviceEntity>> FetchAllByBrandAsync(string deviceBrand);
+        Task<IEnumerable<DeviceEntity>> FetchAllByBrandAsync(string deviceBrand, CancellationToken cancellationToken);
 
-        Task<IEnumerable<DeviceEntity>> FetchAllByStateAsync(DeviceStateEnum deviceState);
+        Task<IEnumerable<DeviceEntity>> FetchAllByStateAsync(DeviceStateEnum deviceState, CancellationToken cancellationToken);
     }
 
     public class DevicesCrudService : IDevicesCrudService
@@ -47,7 +47,8 @@ namespace OneGlobalDevicesApi.Domain.Services
         /// <param name="name"></param>
         /// <param name="brand"></param>
         /// <returns>Device created with ID</returns>
-        public async Task<DeviceEntity> CreateNewDeviceAsync(string name, string brand)
+        public async Task<DeviceEntity> CreateNewDeviceAsync(string name, string brand,
+            CancellationToken cancellationToken)
         {
             var device = new DeviceEntity
             {
@@ -63,7 +64,7 @@ namespace OneGlobalDevicesApi.Domain.Services
             //if (string.IsNullOrWhiteSpace(brand))
             //    throw new DeviceBusinessException("Device brand cannot be null or empty.");
 
-            await _deviceRepository.SaveAsync(device);
+            await _deviceRepository.SaveAsync(device, cancellationToken);
 
             return device;
         }
@@ -85,7 +86,9 @@ namespace OneGlobalDevicesApi.Domain.Services
         /// <returns>DeviceEntity updated</returns>
         /// <exception cref="DeviceBusinessException"></exception>
         /// <exception cref="KeyNotFoundException"></exception>
-        public async Task<DeviceEntity> UpdateDeviceAsync(Guid id, string? newName, string? newBrand, DeviceStateEnum? newState)
+        public async Task<DeviceEntity> UpdateDeviceAsync(Guid id, 
+            string? newName, string? newBrand, DeviceStateEnum? newState,
+            CancellationToken cancellationToken)
         {
             // Check if there are changes
             if (newName == null && 
@@ -96,7 +99,7 @@ namespace OneGlobalDevicesApi.Domain.Services
                 throw new DeviceBusinessException("At least one field (name, brand, state) must be provided for update.");
             }
 
-            DeviceEntity currentDevice = await _deviceRepository.FetchByIdAsync(id);
+            DeviceEntity currentDevice = await _deviceRepository.FetchByIdAsync(id, cancellationToken);
             if (currentDevice == null)
             {
                 throw new KeyNotFoundException($"Device with ID {id} not found.");
@@ -140,7 +143,7 @@ namespace OneGlobalDevicesApi.Domain.Services
             currentDevice.Brand = newBrand;
             currentDevice.State = newState.Value;
 
-            await _deviceRepository.UpdateAsync(currentDevice);
+            await _deviceRepository.UpdateAsync(currentDevice, cancellationToken);
             return currentDevice;
         }
 
@@ -148,9 +151,9 @@ namespace OneGlobalDevicesApi.Domain.Services
 
         #region Delete a single device.
 
-        public async Task DeleteSingleDeviceAsync(Guid id)
+        public async Task DeleteSingleDeviceAsync(Guid id, CancellationToken cancellationToken)
         {
-            DeviceEntity currentDevice = await _deviceRepository.FetchByIdAsync(id);
+            DeviceEntity currentDevice = await _deviceRepository.FetchByIdAsync(id, cancellationToken);
             if (currentDevice == null)
             {
                 throw new KeyNotFoundException($"Device with ID {id} not found.");
@@ -162,42 +165,25 @@ namespace OneGlobalDevicesApi.Domain.Services
                 throw new DeviceBusinessException("Cannot delete device while it is In Use.");
             }
 
-            await _deviceRepository.DeleteAsync(id);
+            await _deviceRepository.DeleteAsync(id, cancellationToken);
         }
 
 
         #endregion
 
-        #region Fetch a single device.
+        #region Fetch Methods
 
-        /// <summary>
-        /// FetchSingleDevice by Id
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        public async Task<DeviceEntity?> FetchSingleDeviceAsync(Guid id) =>
-            await _deviceRepository.FetchByIdAsync(id);
+        public async Task<DeviceEntity?> FetchSingleDeviceAsync(Guid id, CancellationToken cancellationToken) =>
+            await _deviceRepository.FetchByIdAsync(id, cancellationToken);
 
-        #endregion
+        public async Task<IEnumerable<DeviceEntity>> FetchAllDevicesAsync(CancellationToken cancellationToken) =>
+            await _deviceRepository.FetchAllAsync(cancellationToken);
 
-        #region Fetch all devices.
+        public async Task<IEnumerable<DeviceEntity>> FetchAllByBrandAsync(string deviceBrand, CancellationToken cancellationToken) =>
+            await _deviceRepository.FetchAllByBrandAsync(deviceBrand, cancellationToken);
 
-        public async Task<IEnumerable<DeviceEntity>> FetchAllDevicesAsync() =>
-            await _deviceRepository.FetchAllAsync();
-
-        #endregion
-
-        #region Fetch devices by brand
-
-        public async Task<IEnumerable<DeviceEntity>> FetchAllByBrandAsync(string deviceBrand) =>
-            await _deviceRepository.FetchAllByBrandAsync(deviceBrand);
-
-        #endregion
-
-        #region Fetch devices by state
-
-        public async Task<IEnumerable<DeviceEntity>> FetchAllByStateAsync(DeviceStateEnum deviceState) =>
-            await _deviceRepository.FetchAllByStateAsync(deviceState);
+        public async Task<IEnumerable<DeviceEntity>> FetchAllByStateAsync(DeviceStateEnum deviceState, CancellationToken cancellationToken) =>
+            await _deviceRepository.FetchAllByStateAsync(deviceState, cancellationToken);
 
         #endregion
     }

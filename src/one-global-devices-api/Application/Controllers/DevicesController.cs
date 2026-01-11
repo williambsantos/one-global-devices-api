@@ -17,24 +17,19 @@ namespace OneGlobalDevicesApi.Application.Controllers
             _logger = logger;
         }
 
-        /*
-        Create a new device. 
-        Fully and/or partially update an existing device. 
-        Fetch a single device. 
-        Fetch all devices. 
-        Fetch devices by brand. 
-        Fetch devices by state. 
-        Delete a single device. 
-        */
-
         [HttpPost]
         public async Task<ActionResult<DeviceResponseDto>> CreateNewDeviceAsync(
             [FromServices] IDevicesCrudService service,
-            [FromBody] DeviceCreateRequestDTO request)
+            [FromBody] DeviceCreateRequestDTO request,
+            CancellationToken cancellationToken)
         {
             try
             {
-                DeviceEntity deviceCreated = await service.CreateNewDeviceAsync(request.Name, request.Brand);
+                DeviceEntity deviceCreated = await service.CreateNewDeviceAsync(
+                    name: request.Name,
+                    brand: request.Brand,
+                    cancellationToken: cancellationToken
+                );
 
                 DeviceResponseDto response = new DeviceResponseDto(deviceCreated);
 
@@ -59,7 +54,8 @@ namespace OneGlobalDevicesApi.Application.Controllers
         public async Task<ActionResult<DeviceResponseDto>> FullyUpdateDeviceAsync(
             [FromServices] IDevicesCrudService service,
             Guid id,
-            [FromBody] DeviceFullyUpdateRequestDTO request)
+            [FromBody] DeviceFullyUpdateRequestDTO request,
+            CancellationToken cancellationToken)
         {
             try
             {
@@ -67,7 +63,8 @@ namespace OneGlobalDevicesApi.Application.Controllers
                     id: id, 
                     newName: request.NewName,
                     newBrand: request.NewBrand,
-                    newState: request.NewState
+                    newState: request.NewState,
+                    cancellationToken: cancellationToken
                 );
 
                 DeviceResponseDto response = new DeviceResponseDto(deviceCreated);
@@ -114,7 +111,8 @@ namespace OneGlobalDevicesApi.Application.Controllers
         public async Task<ActionResult<DeviceResponseDto>> PartiallyUpdateDeviceAsync(
             [FromServices] IDevicesCrudService service,
             Guid id,
-            [FromBody] DevicePartiallyUpdateRequestDTO request)
+            [FromBody] DevicePartiallyUpdateRequestDTO request,
+            CancellationToken cancellationToken)
         {
             try
             {
@@ -122,7 +120,8 @@ namespace OneGlobalDevicesApi.Application.Controllers
                     id: id,
                     newName: request.NewName,
                     newBrand: request.NewBrand,
-                    newState: request.NewState
+                    newState: request.NewState,
+                    cancellationToken: cancellationToken
                 );
 
                 DeviceResponseDto response = new DeviceResponseDto(deviceCreated);
@@ -169,11 +168,15 @@ namespace OneGlobalDevicesApi.Application.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult<DeviceResponseDto>> DeleteSingleDevice(
             [FromServices] IDevicesCrudService service,
-            Guid id)
+            Guid id,
+            CancellationToken cancellationToken)
         {
             try
             {
-                await service.DeleteSingleDeviceAsync(id);
+                await service.DeleteSingleDeviceAsync(
+                    id: id,
+                    cancellationToken: cancellationToken
+                ); 
 
                 return NoContent();
             }
@@ -204,11 +207,15 @@ namespace OneGlobalDevicesApi.Application.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<DeviceResponseDto>> FetchSingleDevice(
             [FromServices] IDevicesCrudService service,
-            Guid id)
+            Guid id,
+            CancellationToken cancellationToken)
         {
             try
             {
-                DeviceEntity? device = await service.FetchSingleDeviceAsync(id);
+                DeviceEntity? device = await service.FetchSingleDeviceAsync(
+                    id: id, 
+                    cancellationToken: cancellationToken
+                );
                 if (device == null)
                 {
                     return NotFound(new { message = $"Device with ID {id} not found" });
@@ -244,12 +251,15 @@ namespace OneGlobalDevicesApi.Application.Controllers
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DeviceResponseDto>>> FetchAllDevices(
-            [FromServices] IDevicesCrudService service
+            [FromServices] IDevicesCrudService service,
+            CancellationToken cancellationToken
             )
         {
             try
             {
-                IEnumerable<DeviceEntity> devices = await service.FetchAllDevicesAsync();
+                IEnumerable<DeviceEntity> devices = await service.FetchAllDevicesAsync(
+                    cancellationToken
+                );
 
                 List<DeviceResponseDto> response = devices?.Select(d => new DeviceResponseDto(d))?.ToList() ?? [];
 
@@ -269,12 +279,16 @@ namespace OneGlobalDevicesApi.Application.Controllers
         [HttpGet("byBrand")]
         public async Task<ActionResult<IEnumerable<DeviceResponseDto>>> FetchAllDevicesByBrand(
             [FromServices] IDevicesCrudService service,
-            [FromQuery] string? brand
+            [FromQuery] string? brand,
+            CancellationToken cancellationToken
             )
         {
             try
             {
-                IEnumerable<DeviceEntity> devices = await service.FetchAllByBrandAsync(brand ?? string.Empty);
+                IEnumerable<DeviceEntity> devices = await service.FetchAllByBrandAsync(
+                    deviceBrand: brand ?? string.Empty,
+                    cancellationToken: cancellationToken
+                );
 
                 List<DeviceResponseDto> response = devices?.Select(d => new DeviceResponseDto(d))?.ToList() ?? [];
 
@@ -294,12 +308,16 @@ namespace OneGlobalDevicesApi.Application.Controllers
         [HttpGet("byState")]
         public async Task<ActionResult<IEnumerable<DeviceResponseDto>>> FetchAllDevicesByState(
             [FromServices] IDevicesCrudService service,
-            [FromQuery] DeviceStateEnum? state
+            [FromQuery] DeviceStateEnum? state,
+            CancellationToken cancellationToken
             )
         {
             try
             {
-                IEnumerable<DeviceEntity> devices = await service.FetchAllByStateAsync(state ?? default);
+                IEnumerable<DeviceEntity> devices = await service.FetchAllByStateAsync(
+                    deviceState: state ?? default,
+                    cancellationToken: cancellationToken
+                );
 
                 List<DeviceResponseDto> response = devices?.Select(d => new DeviceResponseDto(d))?.ToList() ?? [];
 
@@ -315,7 +333,5 @@ namespace OneGlobalDevicesApi.Application.Controllers
                 return BadRequest(ex.Message);
             }
         }
-
-
     }
 }

@@ -5,6 +5,9 @@
     <File Path="databases/database-test.md" />
   </Folder>
   <Folder Name="/docs/" />
+  <Folder Name="/Solution Items/">
+    <File Path=".gitignore" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/one-global-devices-api/one-global-devices-api.csproj" />
   </Folder>
