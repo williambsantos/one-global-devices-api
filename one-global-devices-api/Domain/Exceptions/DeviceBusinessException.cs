@@ -15,9 +15,5 @@ namespace OneGlobalDevicesApi.Domain.Exceptions
         public DeviceBusinessException(string? message, Exception? innerException) : base(message, innerException)
         {
         }
-
-        protected DeviceBusinessException(SerializationInfo info, StreamingContext context) : base(info, context)
-        {
-        }
     }
 }

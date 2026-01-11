@@ -15,14 +15,18 @@ namespace OneGlobalDevicesApi.Domain.Services
     /// </summary>
     public interface IDevicesCrudService
     {
-        Task<DeviceEntity> CreateNewDevice(string name, string brand);
-        Task<DeviceEntity?> UpdateDevice(Guid id, string? newName, string? newBrand, DeviceStateEnum? newState);
-        Task DeleteSingleDevice(Guid id);
+        Task<DeviceEntity> CreateNewDeviceAsync(string name, string brand);
 
-        Task<DeviceEntity> FetchSingleDevice(Guid id);
+        Task<DeviceEntity> UpdateDeviceAsync(Guid id, string? newName, string? newBrand, DeviceStateEnum? newState);
+
+        Task DeleteSingleDeviceAsync(Guid id);
+
+        Task<DeviceEntity> FetchSingleDeviceAsync(Guid id);
 
         Task<IEnumerable<DeviceEntity>> FetchAllDevicesAsync();
+
         Task<IEnumerable<DeviceEntity>> FetchAllByBrandAsync(string deviceBrand);
+
         Task<IEnumerable<DeviceEntity>> FetchAllByStateAsync(DeviceStateEnum deviceState);
     }
 
@@ -43,7 +47,7 @@ namespace OneGlobalDevicesApi.Domain.Services
         /// <param name="name"></param>
         /// <param name="brand"></param>
         /// <returns>Device created with ID</returns>
-        public async Task<DeviceEntity> CreateNewDevice(string name, string brand)
+        public async Task<DeviceEntity> CreateNewDeviceAsync(string name, string brand)
         {
             var device = new DeviceEntity
             {
@@ -53,6 +57,11 @@ namespace OneGlobalDevicesApi.Domain.Services
             };
 
             // TODO: check with the team Business Rules about the device creation, like as unique name
+            //if (string.IsNullOrWhiteSpace(name))
+            //    throw new DeviceBusinessException("Device name cannot be null or empty.");
+
+            //if (string.IsNullOrWhiteSpace(brand))
+            //    throw new DeviceBusinessException("Device brand cannot be null or empty.");
 
             await _deviceRepository.SaveAsync(device);
 
@@ -76,7 +85,7 @@ namespace OneGlobalDevicesApi.Domain.Services
         /// <returns>DeviceEntity updated</returns>
         /// <exception cref="DeviceBusinessException"></exception>
         /// <exception cref="KeyNotFoundException"></exception>
-        public async Task<DeviceEntity?> UpdateDevice(Guid id, string? newName, string? newBrand, DeviceStateEnum? newState)
+        public async Task<DeviceEntity> UpdateDeviceAsync(Guid id, string? newName, string? newBrand, DeviceStateEnum? newState)
         {
             // Check if there are changes
             if (newName == null || newBrand == null || newState == null)
@@ -136,7 +145,7 @@ namespace OneGlobalDevicesApi.Domain.Services
 
         #region Delete a single device.
 
-        public async Task DeleteSingleDevice(Guid id)
+        public async Task DeleteSingleDeviceAsync(Guid id)
         {
             DeviceEntity currentDevice = await _deviceRepository.FetchByIdAsync(id);
             if (currentDevice == null)
@@ -158,7 +167,12 @@ namespace OneGlobalDevicesApi.Domain.Services
 
         #region Fetch a single device.
 
-        public async Task<DeviceEntity> FetchSingleDevice(Guid id) =>
+        /// <summary>
+        /// FetchSingleDevice by Id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<DeviceEntity> FetchSingleDeviceAsync(Guid id) =>
             await _deviceRepository.FetchByIdAsync(id);
 
         #endregion
