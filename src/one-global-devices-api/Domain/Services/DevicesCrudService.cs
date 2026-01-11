@@ -1,6 +1,9 @@
 ﻿using OneGlobalDevicesApi.Domain.Entities;
 using OneGlobalDevicesApi.Domain.Exceptions;
 using OneGlobalDevicesApi.Domain.Repositories;
+using OneGlobalDevicesApi.Infra.SQLServer.Connections;
+using System.Data;
+using System.Data.Common;
 
 namespace OneGlobalDevicesApi.Domain.Services
 {
@@ -21,7 +24,7 @@ namespace OneGlobalDevicesApi.Domain.Services
 
         Task DeleteSingleDeviceAsync(Guid id, CancellationToken cancellationToken);
 
-        Task<DeviceEntity> FetchSingleDeviceAsync(Guid id, CancellationToken cancellationToken);
+        Task<DeviceEntity?> FetchSingleDeviceAsync(Guid id, CancellationToken cancellationToken);
 
         Task<IEnumerable<DeviceEntity>> FetchAllDevicesAsync(CancellationToken cancellationToken);
 
@@ -33,10 +36,15 @@ namespace OneGlobalDevicesApi.Domain.Services
     public class DevicesCrudService : IDevicesCrudService
     {
         public readonly IDeviceRepository _deviceRepository;
+        private readonly IDatabaseConnection _databaseConnection;
 
-        public DevicesCrudService(IDeviceRepository deviceRepository)
+        public DevicesCrudService(
+            IDeviceRepository deviceRepository,
+            IDatabaseConnection databaseConnection
+            )
         {
             _deviceRepository = deviceRepository;
+            _databaseConnection = databaseConnection;
         }
 
         #region Create a new device.
@@ -99,7 +107,15 @@ namespace OneGlobalDevicesApi.Domain.Services
                 throw new DeviceBusinessException("At least one field (name, brand, state) must be provided for update.");
             }
 
-            DeviceEntity currentDevice = await _deviceRepository.FetchByIdAsync(id, cancellationToken);
+            using DbConnection connection = await _databaseConnection.CreateConnectionAsync(cancellationToken);
+            using DbTransaction transaction = await connection.BeginTransactionAsync(cancellationToken);
+
+            DeviceEntity? currentDevice = await _deviceRepository.FetchByIdAsync(
+                deviceId: id, 
+                connection: connection,
+                transaction: transaction, 
+                cancellationToken: cancellationToken
+            );
             if (currentDevice == null)
             {
                 throw new KeyNotFoundException($"Device with ID {id} not found.");
@@ -143,7 +159,14 @@ namespace OneGlobalDevicesApi.Domain.Services
             currentDevice.Brand = newBrand;
             currentDevice.State = newState.Value;
 
-            await _deviceRepository.UpdateAsync(currentDevice, cancellationToken);
+            await _deviceRepository.UpdateAsync(
+                currentDevice,
+                connection, transaction,
+                cancellationToken
+            );
+
+            await transaction.CommitAsync();
+            
             return currentDevice;
         }
 
@@ -153,7 +176,15 @@ namespace OneGlobalDevicesApi.Domain.Services
 
         public async Task DeleteSingleDeviceAsync(Guid id, CancellationToken cancellationToken)
         {
-            DeviceEntity currentDevice = await _deviceRepository.FetchByIdAsync(id, cancellationToken);
+            using DbConnection connection = await _databaseConnection.CreateConnectionAsync(cancellationToken);
+            using DbTransaction transaction = await connection.BeginTransactionAsync(cancellationToken);
+
+            DeviceEntity? currentDevice = await _deviceRepository.FetchByIdAsync(
+                deviceId: id, 
+                connection: connection,
+                transaction: transaction,
+                cancellationToken: cancellationToken
+            );
             if (currentDevice == null)
             {
                 throw new KeyNotFoundException($"Device with ID {id} not found.");
@@ -165,9 +196,14 @@ namespace OneGlobalDevicesApi.Domain.Services
                 throw new DeviceBusinessException("Cannot delete device while it is In Use.");
             }
 
-            await _deviceRepository.DeleteAsync(id, cancellationToken);
-        }
+            await _deviceRepository.DeleteAsync(id,
+                connection,
+                transaction,
+                cancellationToken
+            );
 
+            await transaction.CommitAsync();
+        }
 
         #endregion
 

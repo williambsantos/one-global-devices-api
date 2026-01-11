@@ -9,8 +9,8 @@
 @stateInUse = InUse
 @stateInactive = Inactive
 
-@DeviceIdToUpdate = 8d26e30f-7982-4990-8f4e-9baaa36aa2c8
-@DeviceIdToDelete = 5217f946-d35d-478e-a9f3-cc89d0d7fda6
+@DeviceIdToUpdate = a1cb0311-dc3f-4fca-855b-9b6c35f00921
+@DeviceIdToDelete = 45f8ad04-a149-4097-8ccb-09d2d8bde5cd
 
 ### Create a new device
 POST {{DevicesApi_HostAddress}}/devices
@@ -21,23 +21,23 @@ Content-Type: application/json
 }
 
 ### Delete a device
-DELETE {{DevicesApi_HostAddress}}/devices/6b63fda1-d332-4821-96a0-deae8ed8c5c3
+DELETE {{DevicesApi_HostAddress}}/devices/{{DeviceIdToDelete}}
 
 ### Fully Update a device
-PUT {{DevicesApi_HostAddress}}/devices/a1cb0311-dc3f-4fca-855b-9b6c35f00921
+PUT {{DevicesApi_HostAddress}}/devices/{{DeviceIdToUpdate}}
 Content-Type: application/json
 
 {
-  "NewName": "Samsung S25 Ultra",
-  "NewBrand": "Samsung",
-  "NewState": "{{stateInUse}}"
+  "NewName": "Samsung S25 Ultra 2",
+  "NewBrand": "Samsung 2",
+  "NewState": "{{state}}"
 }
 
 ### Partially Update a device
 PATCH {{DevicesApi_HostAddress}}/devices/{{DeviceIdToUpdate}}
 Content-Type: application/json
 {
-  "newstate": "{{stateInUse}}"
+  "newstate": "{{stateAvaiable}}"
 }
 
 ### Get all devices

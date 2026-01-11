@@ -1,12 +1,10 @@
 ﻿using Microsoft.Data.SqlClient;
+using OneGlobalDevicesApi.Domain.Repositories;
+using System.Data;
+using System.Data.Common;
 
 namespace OneGlobalDevicesApi.Infra.SQLServer.Connections
 {
-    public interface IDatabaseConnection
-    {
-        Task<SqlConnection> CreateSqlConnectionAsync(CancellationToken cancellationToken);
-    }
-
     public class DatabaseConnection : IDatabaseConnection
     {
         private readonly ILogger<DatabaseConnection> _logger;
@@ -17,9 +15,9 @@ namespace OneGlobalDevicesApi.Infra.SQLServer.Connections
             _logger = logger;
         }
 
-        public async Task<SqlConnection> CreateSqlConnectionAsync(CancellationToken cancellationToken)
+        public async Task<DbConnection> CreateConnectionAsync(CancellationToken cancellationToken)
         {
-            const string logPrefix = nameof(CreateSqlConnectionAsync) + ". ";
+            const string logPrefix = nameof(CreateConnectionAsync) + ". ";
 
             try
             {

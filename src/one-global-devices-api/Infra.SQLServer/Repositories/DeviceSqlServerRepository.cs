@@ -4,6 +4,7 @@ using OneGlobalDevicesApi.Domain.Repositories;
 using OneGlobalDevicesApi.Infra.SQLServer.Connections;
 using OneGlobalDevicesApi.Infra.SQLServer.Constants;
 using System.Data;
+using System.Data.Common;
 using static Dapper.SqlMapper;
 
 namespace OneGlobalDevicesApi.Infra.SQLServer.Repositories
@@ -22,13 +23,14 @@ namespace OneGlobalDevicesApi.Infra.SQLServer.Repositories
 
         #region Save | Update | Delete
 
-        public async Task SaveAsync(DeviceEntity entity, CancellationToken cancellationToken = default)
+        public async Task SaveAsync(DeviceEntity entity,
+            CancellationToken cancellationToken = default)
         {
             string logPrefix = $"{nameof(SaveAsync)}. Id: {entity?.Id}. ";
 
             await LogActionAsync(logPrefix, async () =>
             {
-                using var connection = await _databaseConnection.CreateSqlConnectionAsync(cancellationToken);
+                using var connection = await _databaseConnection.CreateConnectionAsync(cancellationToken);
 
                 var sql = $@"
 INSERT INTO {TableContants.DeviceTableName} 
@@ -56,13 +58,16 @@ VALUES (@Id, @Name, @Brand, @State,@CreationTime);
             });
         }
 
-        public async Task UpdateAsync(DeviceEntity entity, CancellationToken cancellationToken = default)
+        public async Task UpdateAsync(DeviceEntity entity,
+            DbConnection connection, DbTransaction transaction,
+            CancellationToken cancellationToken = default)
         {
             string logPrefix = $"{nameof(UpdateAsync)}. Id: {entity?.Id}. ";
 
             await LogActionAsync(logPrefix, async () =>
             {
-                using var connection = await _databaseConnection.CreateSqlConnectionAsync(cancellationToken);
+                if (connection == null)
+                    throw new ArgumentNullException(nameof(connection));
 
                 var sql = $@"
 UPDATE {TableContants.DeviceTableName} 
@@ -84,6 +89,7 @@ WHERE Id = @Id
                 var rowsAffected = await connection.ExecuteAsync(new CommandDefinition(
                     commandText: sql,
                     parameters: parameters,
+                    transaction: transaction,
                     commandTimeout: 30,
                     commandType: CommandType.Text,
                     cancellationToken: cancellationToken
@@ -92,13 +98,16 @@ WHERE Id = @Id
             });
         }
 
-        public async Task DeleteAsync(Guid deviceId, CancellationToken cancellationToken = default)
+        public async Task DeleteAsync(Guid deviceId,
+            DbConnection connection, DbTransaction transaction,
+            CancellationToken cancellationToken = default)
         {
             string logPrefix = $"{nameof(UpdateAsync)}. Id: {deviceId}. ";
 
             await LogActionAsync(logPrefix, async () =>
             {
-                using var connection = await _databaseConnection.CreateSqlConnectionAsync(cancellationToken);
+                if (connection == null)
+                    throw new ArgumentNullException(nameof(connection));
 
                 var sql = $@"
 DELETE {TableContants.DeviceTableName} 
@@ -112,6 +121,7 @@ WHERE Id = @Id
                 var rowsAffected = await connection.ExecuteScalarAsync<int>(new CommandDefinition(
                     commandText: sql,
                     parameters: parameters,
+                    transaction: transaction,
                     commandTimeout: 30,
                     commandType: CommandType.Text,
                     cancellationToken: cancellationToken
@@ -126,10 +136,13 @@ WHERE Id = @Id
 
         public async Task<IEnumerable<DeviceEntity>> FetchAllAsync(CancellationToken cancellationToken = default)
         {
+            using var connection = await _databaseConnection.CreateConnectionAsync(cancellationToken);
+
             var list = await InternalFetchByAsync(
                 id: null,
                 brand: null,
                 state: null,
+                connection: connection,
                 cancellationToken: cancellationToken
             );
 
@@ -138,10 +151,13 @@ WHERE Id = @Id
 
         public async Task<IEnumerable<DeviceEntity>> FetchAllByBrandAsync(string deviceBrand, CancellationToken cancellationToken = default)
         {
+            using var connection = await _databaseConnection.CreateConnectionAsync(cancellationToken);
+
             var list = await InternalFetchByAsync(
                 id: null,
                 brand: deviceBrand,
                 state: null,
+                connection: connection,
                 cancellationToken: cancellationToken
             );
 
@@ -150,10 +166,13 @@ WHERE Id = @Id
 
         public async Task<IEnumerable<DeviceEntity>> FetchAllByStateAsync(DeviceStateEnum deviceState, CancellationToken cancellationToken = default)
         {
+            using var connection = await _databaseConnection.CreateConnectionAsync(cancellationToken);
+
             var list = await InternalFetchByAsync(
                 id: null,
                 brand: null,
                 state: deviceState,
+                connection: connection,
                 cancellationToken: cancellationToken
             );
 
@@ -162,10 +181,29 @@ WHERE Id = @Id
 
         public async Task<DeviceEntity?> FetchByIdAsync(Guid deviceId, CancellationToken cancellationToken = default)
         {
+            using var connection = await _databaseConnection.CreateConnectionAsync(cancellationToken);
+
             var list = await InternalFetchByAsync(
                 id: deviceId,
                 brand: null,
                 state: null,
+                connection: connection,
+                cancellationToken: cancellationToken
+            );
+
+            return list?.FirstOrDefault();
+        }
+
+        public async Task<DeviceEntity?> FetchByIdAsync(Guid deviceId, 
+            DbConnection connection, DbTransaction transaction, 
+            CancellationToken cancellationToken = default)
+        {
+            var list = await InternalFetchByAsync(
+                id: deviceId,
+                brand: null,
+                state: null,
+                connection: connection,
+                transaction: transaction,
                 cancellationToken: cancellationToken
             );
 
@@ -176,11 +214,11 @@ WHERE Id = @Id
             Guid? id,
             string? brand,
             DeviceStateEnum? state,
+            DbConnection connection,
+            DbTransaction? transaction = default,
             CancellationToken cancellationToken = default)
         {
             string logPrefix = $"{nameof(InternalFetchByAsync)}. ";
-
-            using var connection = await _databaseConnection.CreateSqlConnectionAsync(cancellationToken);
 
             var sql = $@"
 SELECT
@@ -208,7 +246,8 @@ ORDER BY [CreationTime] ASC;";
                 parameters: parameters,
                 commandTimeout: 30,
                 commandType: CommandType.Text,
-                cancellationToken: cancellationToken
+                cancellationToken: cancellationToken,
+                transaction: transaction
             ));
 
             return list ?? [];
