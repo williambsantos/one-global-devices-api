@@ -11,5 +11,7 @@
   <Folder Name="/src/">
     <Project Path="src/one-global-devices-api/one-global-devices-api.csproj" />
   </Folder>
-  <Folder Name="/tests/" />
+  <Folder Name="/tests/">
+    <Project Path="tests/one-global-devices-api-tests/one-global-devices-api-tests.csproj" Id="21bff42d-c05a-45ab-b84e-025384db45a5" />
+  </Folder>
 </Solution>
