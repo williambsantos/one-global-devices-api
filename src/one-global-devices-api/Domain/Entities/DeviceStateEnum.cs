@@ -2,8 +2,8 @@
 {
     public enum DeviceStateEnum
     {
-        Available = 'A',
-        InUse = 'U',
-        Inactive = 'I'
+        Available,
+        InUse,
+        Inactive
     }
 }

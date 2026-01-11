@@ -88,7 +88,10 @@ namespace OneGlobalDevicesApi.Domain.Services
         public async Task<DeviceEntity> UpdateDeviceAsync(Guid id, string? newName, string? newBrand, DeviceStateEnum? newState)
         {
             // Check if there are changes
-            if (newName == null || newBrand == null || newState == null)
+            if (newName == null && 
+                newBrand == null && 
+                newState == null
+                )
             {
                 throw new DeviceBusinessException("At least one field (name, brand, state) must be provided for update.");
             }
@@ -172,7 +175,7 @@ namespace OneGlobalDevicesApi.Domain.Services
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public async Task<DeviceEntity> FetchSingleDeviceAsync(Guid id) =>
+        public async Task<DeviceEntity?> FetchSingleDeviceAsync(Guid id) =>
             await _deviceRepository.FetchByIdAsync(id);
 
         #endregion

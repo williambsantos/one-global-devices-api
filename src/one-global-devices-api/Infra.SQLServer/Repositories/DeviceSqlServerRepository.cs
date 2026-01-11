@@ -43,8 +43,8 @@ VALUES (@Id, @Name, @Brand, @State,@CreationTime);
                         Id = entity.Id,
                         Name = entity.Name,
                         Brand = entity.Brand,
+                        State = entity.State.ToString(),
                         CreationTime = entity.CreationTime
-
                     };
 
                     var id = await connection.ExecuteScalarAsync<int>(new CommandDefinition(
@@ -95,6 +95,7 @@ WHERE Id = @Id
                         Name = entity.Name,
                         Brand = entity.Brand,
                         Id = entity.Id,
+                        State = entity.State.ToString()
                     };
 
                     var id = await connection.ExecuteScalarAsync<int>(new CommandDefinition(
@@ -232,7 +233,7 @@ SELECT
     [Name] as {nameof(DeviceEntity.Name)},
     [Brand] as {nameof(DeviceEntity.Brand)},
     [State] as {nameof(DeviceEntity.State)},
-    [CreationTime] as {nameof(DeviceEntity.CreationTime)},
+    [CreationTime] as {nameof(DeviceEntity.CreationTime)}
 FROM {TableContants.DeviceTableName}
 WHERE 1 = 1
 AND (@Id IS NULL OR Id = @Id)
@@ -244,7 +245,7 @@ ORDER BY [CreationTime] ASC;";
             {
                 Id = id,
                 Brand = brand,
-                State = state.HasValue ? (char?)state.Value : null
+                State = state?.ToString()
             };
 
             IEnumerable<DeviceEntity> list = await connection.QueryAsync<DeviceEntity>(new CommandDefinition(

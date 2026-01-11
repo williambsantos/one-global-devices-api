@@ -30,6 +30,7 @@ npm-debug.log*
 # Database
 *.db
 *.sqlite
+mssql-data/
 
 # Temporary files
 *.swp

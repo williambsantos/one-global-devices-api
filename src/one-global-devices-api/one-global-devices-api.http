@@ -1,6 +1,58 @@
-@one_global_devices_api_HostAddress = http://localhost:5251
+@DevicesApi_HostAddress = http://localhost:5251
 
-GET {{one_global_devices_api_HostAddress}}/weatherforecast/
+@DeviceId = 86a83b5f-bab0-40ed-bec4-933943638e62
+@name = iPhone 17 Pro Max
+@brand = Apple
+@state = Available
+
+@stateAvaiable = Available
+@stateInUse = InUse
+@stateInactive = Inactive
+
+@DeviceIdToUpdate = 9bcd2542-5826-4634-a071-9ce96f3d484a
+@DeviceIdToDelete = 5217f946-d35d-478e-a9f3-cc89d0d7fda6
+
+### Create a new device
+POST {{DevicesApi_HostAddress}}/devices
+Content-Type: application/json
+
+{
+  "name": "Samsung S25",
+  "brand": "Samsung"
+}
+
+### Delete a device
+DELETE {{DevicesApi_HostAddress}}/devices/{{DeviceIdToDelete}}
+
+### Fully Update a device
+PUT {{DevicesApi_HostAddress}}/devices/{{DeviceIdToUpdate}}
+Content-Type: application/json
+
+{
+  "NewName": "Samsung S25 Ultra",
+  "NewBrand": "Samsung",
+  "NewState": "{{stateInUse}}"
+}
+
+### Partially Update a device
+PATCH {{DevicesApi_HostAddress}}/devices/{{DeviceIdToUpdate}}
+Content-Type: application/json
+{
+  "newstate": "{{stateInUse}}"
+}
+
+### Get all devices
+GET {{DevicesApi_HostAddress}}/devices
 Accept: application/json
 
-### http://localhost:5251/weatherforecast/
+### Get device by ID
+GET {{DevicesApi_HostAddress}}/devices/{{DeviceId}}
+Accept: application/json
+
+### Get All devices by brand
+GET {{DevicesApi_HostAddress}}/devices/byBrand?brand={{brand}}
+Accept: application/json
+
+### Get All devices by State
+GET {{DevicesApi_HostAddress}}/devices/byState?state={{stateAvaiable}}
+Accept: application/json

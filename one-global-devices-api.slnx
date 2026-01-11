@@ -1,4 +1,10 @@
 <Solution>
+  <Folder Name="/databases/">
+    <File Path="databases/00-create-database.sql" />
+    <File Path="databases/01-create-tables.sql" />
+    <File Path="databases/database-test.md" />
+  </Folder>
+  <Folder Name="/docs/" />
   <Folder Name="/src/">
     <Project Path="src/one-global-devices-api/one-global-devices-api.csproj" />
   </Folder>

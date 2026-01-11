@@ -2,12 +2,19 @@ using OneGlobalDevicesApi.Domain.Repositories;
 using OneGlobalDevicesApi.Domain.Services;
 using OneGlobalDevicesApi.Infra.SQLServer.Connections;
 using OneGlobalDevicesApi.Infra.SQLServer.Repositories;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 

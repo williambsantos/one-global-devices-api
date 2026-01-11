@@ -2,6 +2,6 @@
 {
     public static class TableContants
     {
-        public const string DeviceTableName = "Devices";
+        public const string DeviceTableName = "devices";
     }
 }

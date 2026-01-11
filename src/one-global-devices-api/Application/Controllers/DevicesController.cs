@@ -1,3 +1,4 @@
+using Azure.Core;
 using Microsoft.AspNetCore.Mvc;
 using OneGlobalDevicesApi.Application.DTOs;
 using OneGlobalDevicesApi.Domain.Entities;
@@ -176,6 +177,17 @@ namespace OneGlobalDevicesApi.Application.Controllers
 
                 return NoContent();
             }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogError(ex, "Error to delete a single device. " +
+                    "id: {id}. " +
+                    "error: {error}",
+                    id,
+                    ex.Message
+                );
+
+                return NotFound();
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error to delete a single device. " +
@@ -196,7 +208,7 @@ namespace OneGlobalDevicesApi.Application.Controllers
         {
             try
             {
-                DeviceEntity device = await service.FetchSingleDeviceAsync(id);
+                DeviceEntity? device = await service.FetchSingleDeviceAsync(id);
                 if (device == null)
                 {
                     return NotFound(new { message = $"Device with ID {id} not found" });
@@ -205,6 +217,17 @@ namespace OneGlobalDevicesApi.Application.Controllers
                 DeviceResponseDto response = new DeviceResponseDto(device);
 
                 return Ok(response);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogError(ex, "Error to fetch device by Id. " +
+                    "id: {id}. " +
+                    "error: {error}",
+                    id,
+                    ex.Message
+                );
+
+                return NotFound();
             }
             catch (Exception ex)
             {

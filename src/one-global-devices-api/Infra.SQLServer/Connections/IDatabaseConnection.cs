@@ -19,7 +19,7 @@ namespace OneGlobalDevicesApi.Infra.SQLServer.Connections
 
         public async Task<SqlConnection> CreateSqlConnectionAsync(CancellationToken cancellationToken)
         {
-            const string logPrefix = nameof(DatabaseConnection) + "." + nameof(CreateSqlConnectionAsync) + ". ";
+            const string logPrefix = nameof(CreateSqlConnectionAsync) + ". ";
 
             try
             {

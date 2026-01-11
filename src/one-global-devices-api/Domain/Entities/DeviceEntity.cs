@@ -15,6 +15,6 @@
         /// <summary>
         /// Creation time cannot be updated
         /// </summary>
-        public DateTime CreationTime { get; init; } = DateTime.UtcNow;
+        public DateTimeOffset CreationTime { get; init; } = DateTimeOffset.UtcNow;
     }
 }
