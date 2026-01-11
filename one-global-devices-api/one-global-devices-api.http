@@ -3,4 +3,4 @@
 GET {{one_global_devices_api_HostAddress}}/weatherforecast/
 Accept: application/json
 
-###
+### http://localhost:5251/weatherforecast/
