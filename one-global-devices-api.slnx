@@ -1,3 +1,6 @@
 <Solution>
-  <Project Path="one-global-devices-api/one-global-devices-api.csproj" />
+  <Folder Name="/src/">
+    <Project Path="src/one-global-devices-api/one-global-devices-api.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
 </Solution>
