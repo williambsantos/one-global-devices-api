@@ -8,7 +8,7 @@ CREATE TABLE [dbo].[devices](
 	[Id] [uniqueidentifier] NOT NULL,
 	[Name] [nvarchar](100) NOT NULL,
 	[Brand] [nvarchar](100) NOT NULL,
-	[State] [char] (1) NOT NULL,
+	[State] [nvarchar] (20) NOT NULL,
 	[CreationTime] [datetimeoffset] NOT NULL,
  CONSTRAINT [PK_Devices] PRIMARY KEY CLUSTERED 
 (

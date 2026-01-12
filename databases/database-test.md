@@ -3,7 +3,9 @@
 * create database development enviroment
 
 ```
-docker compose up -d
+cd ./src/one-global-devices-api
+docker-compose down
+docker-compose up --build -d
 ```
 
 * if your system doesn't have a docker compose installed
@@ -11,23 +13,31 @@ docker compose up -d
 ## (powershell)
 
 ```
+cd ./src/one-global-devices-api/databases
+
 docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=SqlServer2022!" `
   -p 1433:1433 `
-  --name oneglobal-sqlserver `
-  --hostname oneglobal-sqlserver `
+  --name sqlserver `
+  --hostname sqlserver `
    -v "$(pwd)/mssql-data:/var/opt/mssql/data" `
    -d `
    mcr.microsoft.com/mssql/server:2022-latest
+
+-- change appSettings to localhost
 ```
 
 ## bash
 
 ```
+cd ./src/one-global-devices-api/databases
+
 docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=SqlServer2022!" \
   -p 1433:1433 \
-  --name oneglobal-sqlserver \
-  --hostname oneglobal-sqlserver \
+  --name sqlserver \
+  --hostname sqlserver \
    -v "$(pwd)/mssql-data:/var/opt/mssql/data" \
    -d \
    mcr.microsoft.com/mssql/server:2022-latest
+
+-- change appSettings to localhost
 ```

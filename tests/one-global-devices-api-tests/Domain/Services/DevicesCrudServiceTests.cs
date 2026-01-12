@@ -124,8 +124,6 @@ namespace one_global_devices_api_tests.Domain.Services
 
             var deviceRepositoryMock = new Mock<IDeviceRepository>();
 
-            DeviceEntity? deviceNotFound = null;
-
             deviceRepositoryMock
                 .Setup(repo => repo.FetchByIdAsync(deviceId, connection, transaction, cancellationToken))
                 .ReturnsAsync(new DeviceEntity
@@ -436,7 +434,7 @@ namespace one_global_devices_api_tests.Domain.Services
             // Arrange
             var cancellationToken = new CancellationToken();
 
-            DeviceEntity currentDevice = null;
+            DeviceEntity? currentDevice = default;
             var deviceId = Guid.NewGuid();
 
             var newName = "Iphone 17 PRO MAX New";
@@ -480,7 +478,7 @@ namespace one_global_devices_api_tests.Domain.Services
             );
 
             deviceRepositoryMock.Verify(
-                expression: repo => repo.UpdateAsync(currentDevice, connection, transaction, cancellationToken),
+                expression: repo => repo.UpdateAsync(It.IsAny<DeviceEntity>(), connection, transaction, cancellationToken),
                 times: Times.Never
             );
 

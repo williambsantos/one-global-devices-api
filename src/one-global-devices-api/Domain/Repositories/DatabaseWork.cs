@@ -4,8 +4,8 @@ namespace OneGlobalDevicesApi.Domain.Repositories
 {
     public class DatabaseWork : IDisposable
     {
-        public DbConnection Connection { get; set; }
-        public DbTransaction Transaction { get; set; }
+        public DbConnection Connection { get; set; } = default;
+        public DbTransaction Transaction { get; set; } = default;
 
         public void Dispose()
         {
