@@ -1,6 +1,6 @@
 # One Global Devices API
 
-A RESTful API for managing devices built with .NET 9.0, SQL Server, and Docker.
+A RESTful API for managing devices built with .NET 10.0, SQL Server, and Docker.
 
 ## 📋 Project Overview
 
@@ -8,7 +8,7 @@ One Global Devices API is a CRUD (Create, Read, Update, Delete) application desi
 
 ### Tech Stack
 
-- **.NET 9.0** - Modern web framework
+- **.NET 10.0** - Modern web framework
 - **SQL Server 2022** - Relational database
 - **Docker & Docker Compose** - Containerization
 - **xUnit** - Unit testing framework
