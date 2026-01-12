@@ -11,7 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace one_global_devices_api_tests.Domain.Services
+namespace OneGlobalDevicesApiTests.Domain.Services
 {
     public class DevicesCrudServiceTests
     {
@@ -620,7 +620,6 @@ namespace one_global_devices_api_tests.Domain.Services
 
         #endregion
 
-
         #region Fetch Methods
 
         [Fact]
@@ -729,7 +728,7 @@ namespace one_global_devices_api_tests.Domain.Services
             );
 
             // Act
-            var result = await devicesCrudService.FetchAllByBrandAsync(deviceBrand, cancellationToken);
+            var result = await devicesCrudService.FetchAllDevicesByBrandAsync(deviceBrand, cancellationToken);
 
             // Assert
             deviceRepositoryMock.Verify(
@@ -771,7 +770,7 @@ namespace one_global_devices_api_tests.Domain.Services
             );
 
             // Act
-            var result = await devicesCrudService.FetchAllByStateAsync(deviceState, cancellationToken);
+            var result = await devicesCrudService.FetchAllDevicesByStateAsync(deviceState, cancellationToken);
 
             // Assert
             deviceRepositoryMock.Verify(

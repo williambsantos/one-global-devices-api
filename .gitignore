@@ -36,3 +36,6 @@ mssql-data/
 *.swp
 *.swo
 *~
+temp/
+CoverageReport/
+TestResults/

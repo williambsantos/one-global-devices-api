@@ -28,9 +28,9 @@ namespace OneGlobalDevicesApi.Domain.Services
 
         Task<IEnumerable<DeviceEntity>> FetchAllDevicesAsync(CancellationToken cancellationToken);
 
-        Task<IEnumerable<DeviceEntity>> FetchAllByBrandAsync(string deviceBrand, CancellationToken cancellationToken);
+        Task<IEnumerable<DeviceEntity>> FetchAllDevicesByBrandAsync(string deviceBrand, CancellationToken cancellationToken);
 
-        Task<IEnumerable<DeviceEntity>> FetchAllByStateAsync(DeviceStateEnum deviceState, CancellationToken cancellationToken);
+        Task<IEnumerable<DeviceEntity>> FetchAllDevicesByStateAsync(DeviceStateEnum deviceState, CancellationToken cancellationToken);
     }
 
     public class DevicesCrudService : IDevicesCrudService
@@ -218,10 +218,10 @@ namespace OneGlobalDevicesApi.Domain.Services
         public async Task<IEnumerable<DeviceEntity>> FetchAllDevicesAsync(CancellationToken cancellationToken) =>
             await _deviceRepository.FetchAllAsync(cancellationToken);
 
-        public async Task<IEnumerable<DeviceEntity>> FetchAllByBrandAsync(string deviceBrand, CancellationToken cancellationToken) =>
+        public async Task<IEnumerable<DeviceEntity>> FetchAllDevicesByBrandAsync(string deviceBrand, CancellationToken cancellationToken) =>
             await _deviceRepository.FetchAllByBrandAsync(deviceBrand, cancellationToken);
 
-        public async Task<IEnumerable<DeviceEntity>> FetchAllByStateAsync(DeviceStateEnum deviceState, CancellationToken cancellationToken) =>
+        public async Task<IEnumerable<DeviceEntity>> FetchAllDevicesByStateAsync(DeviceStateEnum deviceState, CancellationToken cancellationToken) =>
             await _deviceRepository.FetchAllByStateAsync(deviceState, cancellationToken);
 
         #endregion

@@ -166,7 +166,7 @@ namespace OneGlobalDevicesApi.Application.Controllers
 
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult<DeviceResponseDto>> DeleteSingleDevice(
+        public async Task<ActionResult> DeleteSingleDevice(
             [FromServices] IDevicesCrudService service,
             Guid id,
             CancellationToken cancellationToken)
@@ -218,7 +218,7 @@ namespace OneGlobalDevicesApi.Application.Controllers
                 );
                 if (device == null)
                 {
-                    return NotFound(new { message = $"Device with ID {id} not found" });
+                    return NotFound();
                 }
 
                 DeviceResponseDto response = new DeviceResponseDto(device);
@@ -277,7 +277,7 @@ namespace OneGlobalDevicesApi.Application.Controllers
         }
 
         [HttpGet("byBrand")]
-        public async Task<ActionResult<IEnumerable<DeviceResponseDto>>> FetchAllDevicesByBrand(
+        public async Task<ActionResult<IEnumerable<DeviceResponseDto>>> FetchAllDevicesByBrandAsync(
             [FromServices] IDevicesCrudService service,
             [FromQuery] string? brand,
             CancellationToken cancellationToken
@@ -285,7 +285,7 @@ namespace OneGlobalDevicesApi.Application.Controllers
         {
             try
             {
-                IEnumerable<DeviceEntity> devices = await service.FetchAllByBrandAsync(
+                IEnumerable<DeviceEntity> devices = await service.FetchAllDevicesByBrandAsync(
                     deviceBrand: brand ?? string.Empty,
                     cancellationToken: cancellationToken
                 );
@@ -306,7 +306,7 @@ namespace OneGlobalDevicesApi.Application.Controllers
         }
 
         [HttpGet("byState")]
-        public async Task<ActionResult<IEnumerable<DeviceResponseDto>>> FetchAllDevicesByState(
+        public async Task<ActionResult<IEnumerable<DeviceResponseDto>>> FetchAllDevicesByStateAsync(
             [FromServices] IDevicesCrudService service,
             [FromQuery] DeviceStateEnum? state,
             CancellationToken cancellationToken
@@ -314,7 +314,7 @@ namespace OneGlobalDevicesApi.Application.Controllers
         {
             try
             {
-                IEnumerable<DeviceEntity> devices = await service.FetchAllByStateAsync(
+                IEnumerable<DeviceEntity> devices = await service.FetchAllDevicesByStateAsync(
                     deviceState: state ?? default,
                     cancellationToken: cancellationToken
                 );
