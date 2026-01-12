@@ -5,6 +5,7 @@ $testResultsDir = "temp/00-TestResults"
 $coverageReportDir = "temp/01-CoverageReport"
 
 # Clean previous results
+Remove-Item temp -Force -Recurse  -ErrorAction SilentlyContinue
 Remove-Item -Path $testResultsDir -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item -Path $coverageReportDir -Recurse -Force -ErrorAction SilentlyContinue
 
