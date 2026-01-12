@@ -538,8 +538,6 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             var deviceId = Guid.NewGuid();
             var cancellationToken = new CancellationToken();
 
-            DeviceEntity? device = null;
-
             var loggerMock = new Mock<ILogger<DevicesController>>();
 
             var deviceServiceMock = new Mock<IDevicesCrudService>();
@@ -574,8 +572,6 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             // Arrange
             var deviceId = Guid.NewGuid();
             var cancellationToken = new CancellationToken();
-
-            DeviceEntity? device = null;
 
             var loggerMock = new Mock<ILogger<DevicesController>>();
 
