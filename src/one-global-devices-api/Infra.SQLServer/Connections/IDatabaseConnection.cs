@@ -46,11 +46,7 @@ namespace OneGlobalDevicesApi.Infra.SQLServer.Connections
                 var connection = await this.CreateConnectionAsync(cancellationToken);
                 var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
-                return new DatabaseWork
-                {
-                    Connection = connection,
-                    Transaction = transaction
-                };
+                return new DatabaseWork(connection, transaction);
             }
             catch (Exception ex)
             {

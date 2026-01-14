@@ -30,6 +30,8 @@ namespace OneGlobalDevicesApi.Infra.SQLServer.Repositories
 
             await LogActionAsync(logPrefix, async () =>
             {
+                ArgumentNullException.ThrowIfNull(entity);
+
                 using var connection = await _databaseConnection.CreateConnectionAsync(cancellationToken);
 
                 var sql = $@"
@@ -66,8 +68,7 @@ VALUES (@Id, @Name, @Brand, @State,@CreationTime);
 
             await LogActionAsync(logPrefix, async () =>
             {
-                if (connection == null)
-                    throw new ArgumentNullException(nameof(connection));
+                ArgumentNullException.ThrowIfNull(connection);
 
                 var sql = $@"
 UPDATE {TableContants.DeviceTableName} 
@@ -80,10 +81,10 @@ WHERE Id = @Id
 
                 var parameters = new
                 {
-                    Name = entity.Name,
-                    Brand = entity.Brand,
-                    Id = entity.Id,
-                    State = entity.State.ToString()
+                    Name = entity?.Name ?? string.Empty,
+                    Brand = entity?.Brand ?? string.Empty,
+                    Id = entity?.Id ?? Guid.Empty,
+                    State = entity?.State.ToString() ?? string.Empty
                 };
 
                 var rowsAffected = await connection.ExecuteAsync(new CommandDefinition(
@@ -194,8 +195,8 @@ WHERE Id = @Id
             return list?.FirstOrDefault();
         }
 
-        public async Task<DeviceEntity?> FetchByIdAsync(Guid deviceId, 
-            DbConnection connection, DbTransaction transaction, 
+        public async Task<DeviceEntity?> FetchByIdAsync(Guid deviceId,
+            DbConnection connection, DbTransaction transaction,
             CancellationToken cancellationToken = default)
         {
             var list = await InternalFetchByAsync(

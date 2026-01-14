@@ -36,7 +36,7 @@ namespace OneGlobalDevicesApiTests.Domain.Services
 
             // Act
             DeviceEntity deviceCreated = await devicesCrudService.CreateNewDeviceAsync(
-                name, brand, 
+                name, brand,
                 cancellationToken
             );
 
@@ -80,11 +80,7 @@ namespace OneGlobalDevicesApiTests.Domain.Services
             var databaseConnectionMock = new Mock<IDatabaseConnection>();
             databaseConnectionMock
                 .Setup(con => con.CreateConnectionAndTransactionAsync(cancellationToken))
-                .ReturnsAsync(new DatabaseWork
-                {
-                    Connection = connection,
-                    Transaction = transaction
-                });
+                .ReturnsAsync(new DatabaseWork(connection, transaction));
 
             var devicesCrudService = new DevicesCrudService(
                 deviceRepositoryMock.Object,
@@ -137,11 +133,7 @@ namespace OneGlobalDevicesApiTests.Domain.Services
             var databaseConnectionMock = new Mock<IDatabaseConnection>();
             databaseConnectionMock
                 .Setup(con => con.CreateConnectionAndTransactionAsync(cancellationToken))
-                .ReturnsAsync(new DatabaseWork
-                {
-                    Connection = connection,
-                    Transaction = transaction
-                });
+                .ReturnsAsync(new DatabaseWork(connection, transaction));
 
             var devicesCrudService = new DevicesCrudService(
                 deviceRepositoryMock.Object,
@@ -192,11 +184,7 @@ namespace OneGlobalDevicesApiTests.Domain.Services
             var databaseConnectionMock = new Mock<IDatabaseConnection>();
             databaseConnectionMock
                 .Setup(con => con.CreateConnectionAndTransactionAsync(cancellationToken))
-                .ReturnsAsync(new DatabaseWork
-                {
-                    Connection = connection,
-                    Transaction = transaction
-                });
+                .ReturnsAsync(new DatabaseWork(connection, transaction));
 
             var devicesCrudService = new DevicesCrudService(
                 deviceRepositoryMock.Object,
@@ -261,11 +249,7 @@ namespace OneGlobalDevicesApiTests.Domain.Services
             var databaseConnectionMock = new Mock<IDatabaseConnection>();
             databaseConnectionMock
                 .Setup(con => con.CreateConnectionAndTransactionAsync(cancellationToken))
-                .ReturnsAsync(new DatabaseWork
-                {
-                    Connection = connection,
-                    Transaction = transaction
-                });
+                .ReturnsAsync(new DatabaseWork(connection, transaction));
 
             var devicesCrudService = new DevicesCrudService(
                 deviceRepositoryMock.Object,
@@ -326,11 +310,7 @@ namespace OneGlobalDevicesApiTests.Domain.Services
             var databaseConnectionMock = new Mock<IDatabaseConnection>();
             databaseConnectionMock
                 .Setup(con => con.CreateConnectionAndTransactionAsync(cancellationToken))
-                .ReturnsAsync(new DatabaseWork
-                {
-                    Connection = connection,
-                    Transaction = transaction
-                });
+                .ReturnsAsync(new DatabaseWork(connection, transaction));
 
             var devicesCrudService = new DevicesCrudService(
                 deviceRepositoryMock.Object,
@@ -391,11 +371,7 @@ namespace OneGlobalDevicesApiTests.Domain.Services
             var databaseConnectionMock = new Mock<IDatabaseConnection>();
             databaseConnectionMock
                 .Setup(con => con.CreateConnectionAndTransactionAsync(cancellationToken))
-                .ReturnsAsync(new DatabaseWork
-                {
-                    Connection = connection,
-                    Transaction = transaction
-                });
+                .ReturnsAsync(new DatabaseWork(connection, transaction));
 
             var devicesCrudService = new DevicesCrudService(
                 deviceRepositoryMock.Object,
@@ -404,8 +380,8 @@ namespace OneGlobalDevicesApiTests.Domain.Services
 
             // Act
             await Assert.ThrowsAsync<DeviceBusinessException>(async () =>
-                await devicesCrudService.UpdateDeviceAsync(deviceId, 
-                newName: null, 
+                await devicesCrudService.UpdateDeviceAsync(deviceId,
+                newName: null,
                 newBrand: null,
                 newState: null,
                 cancellationToken)
@@ -455,11 +431,7 @@ namespace OneGlobalDevicesApiTests.Domain.Services
             var databaseConnectionMock = new Mock<IDatabaseConnection>();
             databaseConnectionMock
                 .Setup(con => con.CreateConnectionAndTransactionAsync(cancellationToken))
-                .ReturnsAsync(new DatabaseWork
-                {
-                    Connection = connection,
-                    Transaction = transaction
-                });
+                .ReturnsAsync(new DatabaseWork(connection, transaction));
 
             var devicesCrudService = new DevicesCrudService(
                 deviceRepositoryMock.Object,
@@ -520,11 +492,7 @@ namespace OneGlobalDevicesApiTests.Domain.Services
             var databaseConnectionMock = new Mock<IDatabaseConnection>();
             databaseConnectionMock
                 .Setup(con => con.CreateConnectionAndTransactionAsync(cancellationToken))
-                .ReturnsAsync(new DatabaseWork
-                {
-                    Connection = connection,
-                    Transaction = transaction
-                });
+                .ReturnsAsync(new DatabaseWork(connection, transaction));
 
             var devicesCrudService = new DevicesCrudService(
                 deviceRepositoryMock.Object,
@@ -585,11 +553,7 @@ namespace OneGlobalDevicesApiTests.Domain.Services
             var databaseConnectionMock = new Mock<IDatabaseConnection>();
             databaseConnectionMock
                 .Setup(con => con.CreateConnectionAndTransactionAsync(cancellationToken))
-                .ReturnsAsync(new DatabaseWork
-                {
-                    Connection = connection,
-                    Transaction = transaction
-                });
+                .ReturnsAsync(new DatabaseWork(connection, transaction));
 
             var devicesCrudService = new DevicesCrudService(
                 deviceRepositoryMock.Object,
