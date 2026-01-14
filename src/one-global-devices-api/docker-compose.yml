@@ -29,6 +29,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Server=devicesapi-sqlserver;Database=oneglobal;User Id=sa;Password=SqlServer2022!;TrustServerCertificate=True;MultipleActiveResultSets=true
     depends_on:
       sqlserver:
         condition: service_healthy
