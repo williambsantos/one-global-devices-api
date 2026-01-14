@@ -17,7 +17,7 @@ if (-not (Get-Command reportgenerator -ErrorAction SilentlyContinue)) {
 
 # Run tests with coverage
 Write-Host "`n=== Running Tests ===" -ForegroundColor Cyan
-dotnet test --collect:"XPlat Code Coverage" --results-directory:$testResultsDir
+dotnet test --collect:"XPlat Code Coverage" --results-directory:$testResultsDir --settings:coverlet.runsettings
 
 # Find coverage file
 $coverageFile = Get-ChildItem -Path $testResultsDir -Filter "coverage.cobertura.xml" -Recurse | Select-Object -First 1
