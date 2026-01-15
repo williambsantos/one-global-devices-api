@@ -1,6 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
 using OneGlobalDevicesApi.Domain.Repositories;
-using System.Data;
 using System.Data.Common;
 
 namespace OneGlobalDevicesApi.Infra.SQLServer.Connections

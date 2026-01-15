@@ -1,25 +1,64 @@
-using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 using OneGlobalDevicesApi.Application.Controllers;
 using OneGlobalDevicesApi.Application.DTOs;
 using OneGlobalDevicesApi.Domain.Entities;
-using OneGlobalDevicesApi.Domain.Exceptions;
-using OneGlobalDevicesApi.Domain.Repositories;
 using OneGlobalDevicesApi.Domain.Services;
-using System;
-using System.Collections.Generic;
-using System.Data.Common;
-using System.Linq;
-using System.Net.NetworkInformation;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OneGlobalDevicesApiTests.Application.Controllers
 {
     public class DevicesControllerTest
     {
+        #region Common Asserts
+
+        private void AssertActionResultDeviceResponseDto(IEnumerable<DeviceEntity> expectedList, ActionResult<IEnumerable<DeviceResponseDto>> actionResponse)
+        {
+            Assert.NotNull(actionResponse);
+
+            var okResult = Assert.IsType<OkObjectResult>(actionResponse.Result);
+            Assert.NotNull(okResult);
+
+            var actual = okResult.Value as IEnumerable<DeviceResponseDto> ??
+                throw new InvalidOperationException("Expected a DeviceResponseDto");
+
+            for (int i = 0; i < expectedList.Count(); i++)
+            {
+                AssertDeviceEntity(expectedList.ElementAt(i), actual.ElementAt(i));
+            }
+        }
+
+        private void AssertActionResultDeviceResponseDto(DeviceEntity expected, ActionResult<DeviceResponseDto> actionResponse)
+        {
+            Assert.NotNull(actionResponse);
+
+            var okResult = Assert.IsType<OkObjectResult>(actionResponse.Result);
+            Assert.NotNull(okResult);
+
+            var actual = okResult.Value as DeviceResponseDto ??
+                throw new InvalidOperationException("Expected a DeviceResponseDto");
+
+            AssertDeviceEntity(expected, actual);
+        }
+
+        private void AssertDeviceEntity(DeviceEntity expected, DeviceResponseDto actual)
+        {
+            Assert.Equal(expected.Id, actual.Id);
+            Assert.Equal(expected.Name, actual.Name);
+            Assert.Equal(expected.Brand, actual.Brand);
+            Assert.Equal(expected.State.ToString(), actual.State);
+        }
+
+        private void AssertBadRequestObjectResult<T>(Exception exception, ActionResult<T> actionResponse)
+        {
+            Assert.NotNull(actionResponse);
+
+            var badRequest = Assert.IsType<BadRequestObjectResult>(actionResponse);
+            Assert.Equal(exception.Message, badRequest.Value);
+        }        
+
+        #endregion
+
         #region Save
 
         [Fact]
@@ -64,7 +103,12 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
 
             // Assert
             Assert.NotNull(actionResponse);
-            Assert.True(actionResponse.Result is CreatedAtActionResult);
+            var createdResult = Assert.IsType<CreatedAtActionResult>(actionResponse.Result);
+            Assert.NotNull(createdResult.Value);
+            Assert.Equal(nameof(controller.FetchSingleDevice), createdResult.ActionName);
+
+            var actual = createdResult.Value as DeviceResponseDto ?? throw new InvalidOperationException("value is not a DeviceResponseDto");
+            AssertDeviceEntity(deviceCreated, actual);
 
             deviceServiceMock.Verify(
                 expression: repo => repo.CreateNewDeviceAsync(name, brand, cancellationToken),
@@ -94,12 +138,14 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
                 State = DeviceStateEnum.Available
             };
 
+            var exception = new Exception("Service error");
+
             var loggerMock = new Mock<ILogger<DevicesController>>();
 
             var deviceServiceMock = new Mock<IDevicesCrudService>();
             deviceServiceMock
                 .Setup(s => s.CreateNewDeviceAsync(name, brand, cancellationToken))
-                .ThrowsAsync(new Exception("Some Exception"));
+                .ThrowsAsync(exception);
 
             var controller = new DevicesController(
                 loggerMock.Object
@@ -113,8 +159,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             );
 
             // Assert
-            Assert.NotNull(actionResponse);
-            Assert.True(actionResponse.Result is BadRequestObjectResult);
+            AssertBadRequestObjectResult(exception, actionResponse);
 
             deviceServiceMock.Verify(
                 expression: s => s.CreateNewDeviceAsync(name, brand, cancellationToken),
@@ -170,8 +215,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             );
 
             // Assert
-            Assert.NotNull(actionResponse);
-            Assert.True(actionResponse.Result is OkObjectResult);
+            AssertActionResultDeviceResponseDto(device, actionResponse);
 
             deviceServiceMock.Verify(
                 expression: repo => repo.UpdateDeviceAsync(deviceId, newName, newBrand, newState, cancellationToken),
@@ -203,12 +247,14 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
                 State = DeviceStateEnum.Available
             };
 
+            var exception = new Exception("some exception");
+
             var loggerMock = new Mock<ILogger<DevicesController>>();
 
             var deviceServiceMock = new Mock<IDevicesCrudService>();
             deviceServiceMock
                 .Setup(s => s.UpdateDeviceAsync(deviceId, newName, newBrand, newState, cancellationToken))
-                .ThrowsAsync(new Exception("some exception"));
+                .ThrowsAsync(exception);
 
             var controller = new DevicesController(
                 loggerMock.Object
@@ -223,8 +269,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             );
 
             // Assert
-            Assert.NotNull(actionResponse);
-            Assert.True(actionResponse.Result is BadRequestObjectResult);
+            AssertBadRequestObjectResult(exception, actionResponse);
 
             deviceServiceMock.Verify(
                 expression: repo => repo.UpdateDeviceAsync(deviceId, newName, newBrand, newState, cancellationToken),
@@ -280,8 +325,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             );
 
             // Assert
-            Assert.NotNull(actionResponse);
-            Assert.True(actionResponse.Result is OkObjectResult);
+            AssertActionResultDeviceResponseDto(device, actionResponse);
 
             deviceServiceMock.Verify(
                 expression: repo => repo.UpdateDeviceAsync(deviceId, newName, newBrand, newState, cancellationToken),
@@ -313,12 +357,14 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
                 State = DeviceStateEnum.Available
             };
 
+            var exception = new Exception("some exception");
+
             var loggerMock = new Mock<ILogger<DevicesController>>();
 
             var deviceServiceMock = new Mock<IDevicesCrudService>();
             deviceServiceMock
                 .Setup(s => s.UpdateDeviceAsync(deviceId, newName, newBrand, newState, cancellationToken))
-                .ThrowsAsync(new Exception("some exception"));
+                .ThrowsAsync(exception);
 
             var controller = new DevicesController(
                 loggerMock.Object
@@ -333,8 +379,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             );
 
             // Assert
-            Assert.NotNull(actionResponse);
-            Assert.True(actionResponse.Result is BadRequestObjectResult);
+            AssertBadRequestObjectResult(exception, actionResponse);
 
             deviceServiceMock.Verify(
                 expression: repo => repo.UpdateDeviceAsync(deviceId, newName, newBrand, newState, cancellationToken),
@@ -384,13 +429,14 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             // Arrange
             var deviceId = Guid.NewGuid();
             var cancellationToken = new CancellationToken();
+            var exception = new KeyNotFoundException("some exception");
 
             var loggerMock = new Mock<ILogger<DevicesController>>();
 
             var deviceServiceMock = new Mock<IDevicesCrudService>();
             deviceServiceMock
                 .Setup(s => s.DeleteSingleDeviceAsync(deviceId, cancellationToken))
-                .ThrowsAsync(new KeyNotFoundException("some exception"));
+                .ThrowsAsync(exception);
 
             var controller = new DevicesController(
                 loggerMock.Object
@@ -420,12 +466,14 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             var deviceId = Guid.NewGuid();
             var cancellationToken = new CancellationToken();
 
+            var exception = new Exception("some exception");
+
             var loggerMock = new Mock<ILogger<DevicesController>>();
 
             var deviceServiceMock = new Mock<IDevicesCrudService>();
             deviceServiceMock
                 .Setup(s => s.DeleteSingleDeviceAsync(deviceId, cancellationToken))
-                .ThrowsAsync(new Exception("some exception"));
+                .ThrowsAsync(exception);
 
             var controller = new DevicesController(
                 loggerMock.Object
@@ -439,8 +487,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             );
 
             // Assert
-            Assert.NotNull(actionResponse);
-            Assert.True(actionResponse.Result is BadRequestObjectResult);
+            AssertBadRequestObjectResult(exception, actionResponse);
 
             deviceServiceMock.Verify(
                 expression: repo => repo.DeleteSingleDeviceAsync(deviceId, cancellationToken),
@@ -485,8 +532,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             );
 
             // Assert
-            Assert.NotNull(actionResponse);
-            Assert.True(actionResponse.Result is OkObjectResult);
+            AssertActionResultDeviceResponseDto(device, actionResponse);
 
             deviceServiceMock.Verify(
                 expression: repo => repo.FetchSingleDeviceAsync(deviceId, cancellationToken),
@@ -572,13 +618,13 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             // Arrange
             var deviceId = Guid.NewGuid();
             var cancellationToken = new CancellationToken();
-
+            var exception = new Exception("some exception");
             var loggerMock = new Mock<ILogger<DevicesController>>();
 
             var deviceServiceMock = new Mock<IDevicesCrudService>();
             deviceServiceMock
                 .Setup(x => x.FetchSingleDeviceAsync(deviceId, cancellationToken))
-                .ThrowsAsync(new Exception("some exception"));
+                .ThrowsAsync(exception);
 
             var controller = new DevicesController(
                 loggerMock.Object
@@ -592,8 +638,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             );
 
             // Assert
-            Assert.NotNull(actionResponse);
-            Assert.True(actionResponse.Result is BadRequestObjectResult);
+            AssertBadRequestObjectResult(exception, actionResponse);
 
             deviceServiceMock.Verify(
                 expression: repo => repo.FetchSingleDeviceAsync(deviceId, cancellationToken),
@@ -640,8 +685,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             );
 
             // Assert
-            Assert.NotNull(actionResponse);
-            Assert.True(actionResponse.Result is OkObjectResult);
+            AssertActionResultDeviceResponseDto(deviceList, actionResponse);
 
             deviceServiceMock.Verify(
                 expression: repo => repo.FetchAllDevicesAsync(cancellationToken),
@@ -666,12 +710,14 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
                 }
             };
 
+            var exception = new Exception("some exception");
+
             var loggerMock = new Mock<ILogger<DevicesController>>();
 
             var deviceServiceMock = new Mock<IDevicesCrudService>();
             deviceServiceMock
                 .Setup(x => x.FetchAllDevicesAsync(cancellationToken))
-                .ThrowsAsync(new Exception("some exception"));
+                .ThrowsAsync(exception);
 
             var controller = new DevicesController(
                 loggerMock.Object
@@ -684,8 +730,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             );
 
             // Assert
-            Assert.NotNull(actionResponse);
-            Assert.True(actionResponse.Result is BadRequestObjectResult);
+            AssertBadRequestObjectResult(exception, actionResponse);
 
             deviceServiceMock.Verify(
                 expression: repo => repo.FetchAllDevicesAsync(cancellationToken),
@@ -735,8 +780,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             );
 
             // Assert
-            Assert.NotNull(actionResponse);
-            Assert.True(actionResponse.Result is OkObjectResult);
+            AssertActionResultDeviceResponseDto(deviceList, actionResponse);
 
             deviceServiceMock.Verify(
                 expression: repo => repo.FetchAllDevicesByBrandAsync(brand, cancellationToken),
@@ -763,12 +807,14 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
                 }
             };
 
+            var exception = new Exception("some exception");
+
             var loggerMock = new Mock<ILogger<DevicesController>>();
 
             var deviceServiceMock = new Mock<IDevicesCrudService>();
             deviceServiceMock
                 .Setup(x => x.FetchAllDevicesByBrandAsync(brand, cancellationToken))
-                .ThrowsAsync(new Exception("some exception"));
+                .ThrowsAsync(exception);
 
             var controller = new DevicesController(
                 loggerMock.Object
@@ -782,8 +828,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             );
 
             // Assert
-            Assert.NotNull(actionResponse);
-            Assert.True(actionResponse.Result is BadRequestObjectResult);
+            AssertBadRequestObjectResult(exception, actionResponse);
 
             deviceServiceMock.Verify(
                 expression: repo => repo.FetchAllDevicesByBrandAsync(brand, cancellationToken),
@@ -833,8 +878,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             );
 
             // Assert
-            Assert.NotNull(actionResponse);
-            Assert.True(actionResponse.Result is OkObjectResult);
+            AssertActionResultDeviceResponseDto(deviceList, actionResponse);
 
             deviceServiceMock.Verify(
                 expression: repo => repo.FetchAllDevicesByStateAsync(state, cancellationToken),
@@ -861,12 +905,14 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
                 }
             };
 
+            var exception = new Exception("some exception");
+
             var loggerMock = new Mock<ILogger<DevicesController>>();
 
             var deviceServiceMock = new Mock<IDevicesCrudService>();
             deviceServiceMock
                 .Setup(x => x.FetchAllDevicesByStateAsync(state, cancellationToken))
-                .ThrowsAsync(new Exception("some exception"));
+                .ThrowsAsync(exception);
 
             var controller = new DevicesController(
                 loggerMock.Object
@@ -880,8 +926,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             );
 
             // Assert
-            Assert.NotNull(actionResponse);
-            Assert.True(actionResponse.Result is BadRequestObjectResult);
+            AssertBadRequestObjectResult(exception, actionResponse);
 
             deviceServiceMock.Verify(
                 expression: repo => repo.FetchAllDevicesByStateAsync(state, cancellationToken),

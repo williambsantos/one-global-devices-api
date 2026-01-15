@@ -1,7 +1,6 @@
 ﻿using Dapper;
 using OneGlobalDevicesApi.Domain.Entities;
 using OneGlobalDevicesApi.Domain.Repositories;
-using OneGlobalDevicesApi.Infra.SQLServer.Connections;
 using OneGlobalDevicesApi.Infra.SQLServer.Constants;
 using System.Data;
 using System.Data.Common;

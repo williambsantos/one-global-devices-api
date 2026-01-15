@@ -113,11 +113,12 @@ namespace OneGlobalDevicesApi.Domain.Services
             var transaction = databaseWork.Transaction;
 
             DeviceEntity? currentDevice = await _deviceRepository.FetchByIdAsync(
-                deviceId: id, 
+                deviceId: id,
                 connection: connection,
-                transaction: transaction, 
+                transaction: transaction,
                 cancellationToken: cancellationToken
             );
+            
             if (currentDevice == null)
             {
                 throw new KeyNotFoundException($"Device with ID {id} not found.");
@@ -166,7 +167,7 @@ namespace OneGlobalDevicesApi.Domain.Services
                 cancellationToken
             );
 
-            await transaction.CommitAsync();
+            await transaction.CommitAsync(cancellationToken);
             
             return currentDevice;
         }
