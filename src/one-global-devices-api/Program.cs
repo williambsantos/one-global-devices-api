@@ -4,6 +4,10 @@ using OneGlobalDevicesApi.Infra.SQLServer.Connections;
 using OneGlobalDevicesApi.Infra.SQLServer.Repositories;
 using System.Text.Json.Serialization;
 using System.Diagnostics.CodeAnalysis;
+using Scalar.AspNetCore;
+using OneGlobalDevicesApi.Domain.Entities;
+using Microsoft.AspNetCore.OpenApi;
+using Microsoft.OpenApi;
 
 [ExcludeFromCodeCoverage]
 public class Program
@@ -21,8 +25,21 @@ public class Program
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
             });
 
+        // For Minimal APIs and controller-based APIs in .NET 7+
+        builder.Services.ConfigureHttpJsonOptions(options =>
+        {
+            options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        });
+
+        // For controller-based APIs
+        builder.Services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
+        {
+            options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        });
+
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
+
+        builder.Services.AddOpenApi();
 
         #region Service Database Registration
 
@@ -50,8 +67,8 @@ public class Program
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
         {
-            app.UseSwagger();
-            app.UseSwaggerUI();
+            app.MapOpenApi();
+            app.MapScalarApiReference();
         }
 
         app.UseHttpsRedirection();
