@@ -1,5 +1,6 @@
-﻿using Microsoft.AspNetCore.Localization;
-using Moq;
+﻿using FluentAssertions;
+using Microsoft.AspNetCore.Localization;
+using NSubstitute;
 using OneGlobalDevicesApi.Domain.Entities;
 using OneGlobalDevicesApi.Domain.Exceptions;
 using OneGlobalDevicesApi.Domain.Repositories;
@@ -26,12 +27,12 @@ namespace OneGlobalDevicesApiTests.Domain.Services
             var brand = "Apple";
             var cancellationToken = new CancellationToken();
 
-            var deviceRepositoryMock = new Mock<IDeviceRepository>();
-            var databaseConnectionMock = new Mock<IDatabaseConnection>();
+            var deviceRepositoryMock = Substitute.For<IDeviceRepository>();
+            var databaseConnectionMock = Substitute.For<IDatabaseConnection>();
 
             var devicesCrudService = new DevicesCrudService(
-                deviceRepositoryMock.Object,
-                databaseConnectionMock.Object
+                deviceRepositoryMock,
+                databaseConnectionMock
             );
 
             // Act
@@ -41,14 +42,11 @@ namespace OneGlobalDevicesApiTests.Domain.Services
             );
 
             // Assert
-            Assert.NotNull(deviceCreated);
-            Assert.Equal(deviceCreated.Name, name);
-            Assert.Equal(deviceCreated.Brand, brand);
+            deviceCreated.Should().NotBeNull();
+            deviceCreated.Name.Should().Be(name);
+            deviceCreated.Brand.Should().Be(brand);
 
-            deviceRepositoryMock.Verify(
-                expression: repo => repo.SaveAsync(It.IsAny<DeviceEntity>(), cancellationToken),
-                times: Times.Once
-            );
+            await deviceRepositoryMock.Received(1).SaveAsync(Arg.Any<DeviceEntity>(), cancellationToken);
         }
 
         #endregion
@@ -61,50 +59,41 @@ namespace OneGlobalDevicesApiTests.Domain.Services
             // Arrange
             var deviceId = Guid.NewGuid();
             var cancellationToken = new CancellationToken();
-            var connectionMock = new Mock<DbConnection>();
-            var transactionMock = new Mock<DbTransaction>();
-            var connection = connectionMock.Object;
-            var transaction = transactionMock.Object;
+            var connectionMock = Substitute.For<DbConnection>();
+            var transactionMock = Substitute.For<DbTransaction>();
+            var connection = connectionMock;
+            var transaction = transactionMock;
 
-            var deviceRepositoryMock = new Mock<IDeviceRepository>();
+            var deviceRepositoryMock = Substitute.For<IDeviceRepository>();
 
             deviceRepositoryMock
-                .Setup(repo => repo.FetchByIdAsync(deviceId, connection, transaction, cancellationToken))
-                .ReturnsAsync(new DeviceEntity
+                .FetchByIdAsync(deviceId, connection, transaction, cancellationToken)
+                .Returns(new DeviceEntity
                 {
                     Id = deviceId,
                     Name = "Iphone 17 PRO MAX",
                     Brand = "Apple"
                 });
 
-            var databaseConnectionMock = new Mock<IDatabaseConnection>();
+            var databaseConnectionMock = Substitute.For<IDatabaseConnection>();
             databaseConnectionMock
-                .Setup(con => con.CreateConnectionAndTransactionAsync(cancellationToken))
-                .ReturnsAsync(new DatabaseWork(connection, transaction));
+                .CreateConnectionAndTransactionAsync(cancellationToken)
+                .Returns(new DatabaseWork(connection, transaction));
 
             var devicesCrudService = new DevicesCrudService(
-                deviceRepositoryMock.Object,
-                databaseConnectionMock.Object
+                deviceRepositoryMock,
+                databaseConnectionMock
             );
 
             // Act
             await devicesCrudService.DeleteSingleDeviceAsync(deviceId, cancellationToken);
 
             // Assert
-            deviceRepositoryMock.Verify(
-                expression: repo => repo.FetchByIdAsync(deviceId, connection, transaction, cancellationToken),
-                times: Times.Once
-            );
+            await deviceRepositoryMock.Received(1).FetchByIdAsync(deviceId, connection, transaction, cancellationToken);
 
-            deviceRepositoryMock.Verify(
-                expression: repo => repo.DeleteAsync(deviceId, connection, transaction, cancellationToken),
-                times: Times.Once
-            );
+            await deviceRepositoryMock.Received(1).DeleteAsync(deviceId, connection, transaction, cancellationToken);
 
-            transactionMock.Verify(
-                expression: tran => tran.CommitAsync(cancellationToken),
-                times: Times.Once
-            );
+            await transactionMock.Received(1).CommitAsync(cancellationToken);
         }
 
         [Fact]
@@ -113,16 +102,16 @@ namespace OneGlobalDevicesApiTests.Domain.Services
             // Arrange
             var deviceId = Guid.NewGuid();
             var cancellationToken = new CancellationToken();
-            var connectionMock = new Mock<DbConnection>();
-            var transactionMock = new Mock<DbTransaction>();
-            var connection = connectionMock.Object;
-            var transaction = transactionMock.Object;
+            var connectionMock = Substitute.For<DbConnection>();
+            var transactionMock = Substitute.For<DbTransaction>();
+            var connection = connectionMock;
+            var transaction = transactionMock;
 
-            var deviceRepositoryMock = new Mock<IDeviceRepository>();
+            var deviceRepositoryMock = Substitute.For<IDeviceRepository>();
 
             deviceRepositoryMock
-                .Setup(repo => repo.FetchByIdAsync(deviceId, connection, transaction, cancellationToken))
-                .ReturnsAsync(new DeviceEntity
+                .FetchByIdAsync(deviceId, connection, transaction, cancellationToken)
+                .Returns(new DeviceEntity
                 {
                     Id = deviceId,
                     Name = "Iphone 17 PRO MAX",
@@ -130,36 +119,27 @@ namespace OneGlobalDevicesApiTests.Domain.Services
                     State = DeviceStateEnum.InUse
                 });
 
-            var databaseConnectionMock = new Mock<IDatabaseConnection>();
+            var databaseConnectionMock = Substitute.For<IDatabaseConnection>();
             databaseConnectionMock
-                .Setup(con => con.CreateConnectionAndTransactionAsync(cancellationToken))
-                .ReturnsAsync(new DatabaseWork(connection, transaction));
+                .CreateConnectionAndTransactionAsync(cancellationToken)
+                .Returns(new DatabaseWork(connection, transaction));
 
             var devicesCrudService = new DevicesCrudService(
-                deviceRepositoryMock.Object,
-                databaseConnectionMock.Object
+                deviceRepositoryMock,
+                databaseConnectionMock
             );
 
             // Act
-            await Assert.ThrowsAsync<DeviceBusinessException>(async () =>
-                await devicesCrudService.DeleteSingleDeviceAsync(deviceId, cancellationToken)
-            );
+            var act = async () => await devicesCrudService.DeleteSingleDeviceAsync(deviceId, cancellationToken);
 
             // Assert
-            deviceRepositoryMock.Verify(
-                expression: repo => repo.FetchByIdAsync(deviceId, connection, transaction, cancellationToken),
-                times: Times.Once
-            );
+            await act.Should().ThrowAsync<DeviceBusinessException>();
 
-            deviceRepositoryMock.Verify(
-                expression: repo => repo.DeleteAsync(deviceId, connection, transaction, cancellationToken),
-                times: Times.Never
-            );
+            await deviceRepositoryMock.Received(1).FetchByIdAsync(deviceId, connection, transaction, cancellationToken);
 
-            transactionMock.Verify(
-                expression: tran => tran.CommitAsync(cancellationToken),
-                times: Times.Never
-            );
+            await deviceRepositoryMock.Received(0).DeleteAsync(deviceId, connection, transaction, cancellationToken);
+
+            await transactionMock.Received(0).CommitAsync(cancellationToken);
         }
 
         [Fact]
@@ -168,49 +148,40 @@ namespace OneGlobalDevicesApiTests.Domain.Services
             // Arrange
             var deviceId = Guid.NewGuid();
             var cancellationToken = new CancellationToken();
-            var connectionMock = new Mock<DbConnection>();
-            var transactionMock = new Mock<DbTransaction>();
-            var connection = connectionMock.Object;
-            var transaction = transactionMock.Object;
+            var connectionMock = Substitute.For<DbConnection>();
+            var transactionMock = Substitute.For<DbTransaction>();
+            var connection = connectionMock;
+            var transaction = transactionMock;
 
-            var deviceRepositoryMock = new Mock<IDeviceRepository>();
+            var deviceRepositoryMock = Substitute.For<IDeviceRepository>();
 
             DeviceEntity? deviceNotFound = null;
 
             deviceRepositoryMock
-                .Setup(repo => repo.FetchByIdAsync(deviceId, connection, transaction, cancellationToken))
-                .ReturnsAsync(deviceNotFound);
+                .FetchByIdAsync(deviceId, connection, transaction, cancellationToken)
+                .Returns(deviceNotFound);
 
-            var databaseConnectionMock = new Mock<IDatabaseConnection>();
+            var databaseConnectionMock = Substitute.For<IDatabaseConnection>();
             databaseConnectionMock
-                .Setup(con => con.CreateConnectionAndTransactionAsync(cancellationToken))
-                .ReturnsAsync(new DatabaseWork(connection, transaction));
+                .CreateConnectionAndTransactionAsync(cancellationToken)
+                .Returns(new DatabaseWork(connection, transaction));
 
             var devicesCrudService = new DevicesCrudService(
-                deviceRepositoryMock.Object,
-                databaseConnectionMock.Object
+                deviceRepositoryMock,
+                databaseConnectionMock
             );
 
             // Act
-            await Assert.ThrowsAsync<KeyNotFoundException>(async () =>
-                await devicesCrudService.DeleteSingleDeviceAsync(deviceId, cancellationToken)
-            );
+            var act = async () => await devicesCrudService.DeleteSingleDeviceAsync(deviceId, cancellationToken);
 
             // Assert
-            deviceRepositoryMock.Verify(
-                expression: repo => repo.FetchByIdAsync(deviceId, connection, transaction, cancellationToken),
-                times: Times.Once
-            );
+            await act.Should().ThrowAsync<KeyNotFoundException>();
 
-            deviceRepositoryMock.Verify(
-                expression: repo => repo.DeleteAsync(deviceId, connection, transaction, cancellationToken),
-                times: Times.Never
-            );
+            await deviceRepositoryMock.Received(1).FetchByIdAsync(deviceId, connection, transaction, cancellationToken);
 
-            transactionMock.Verify(
-                expression: tran => tran.CommitAsync(cancellationToken),
-                times: Times.Never
-            );
+            await deviceRepositoryMock.Received(0).DeleteAsync(deviceId, connection, transaction, cancellationToken);
+
+            await transactionMock.Received(0).CommitAsync(cancellationToken);
         }
 
         #endregion
@@ -235,25 +206,25 @@ namespace OneGlobalDevicesApiTests.Domain.Services
             var newBrand = currentDevice.Brand + ". Change";
             var newState = DeviceStateEnum.InUse;
 
-            var connectionMock = new Mock<DbConnection>();
-            var transactionMock = new Mock<DbTransaction>();
-            var connection = connectionMock.Object;
-            var transaction = transactionMock.Object;
+            var connectionMock = Substitute.For<DbConnection>();
+            var transactionMock = Substitute.For<DbTransaction>();
+            var connection = connectionMock;
+            var transaction = transactionMock;
 
-            var deviceRepositoryMock = new Mock<IDeviceRepository>();
+            var deviceRepositoryMock = Substitute.For<IDeviceRepository>();
 
             deviceRepositoryMock
-                .Setup(repo => repo.FetchByIdAsync(deviceId, connection, transaction, cancellationToken))
-                .ReturnsAsync(currentDevice);
+                .FetchByIdAsync(deviceId, connection, transaction, cancellationToken)
+                .Returns(currentDevice);
 
-            var databaseConnectionMock = new Mock<IDatabaseConnection>();
+            var databaseConnectionMock = Substitute.For<IDatabaseConnection>();
             databaseConnectionMock
-                .Setup(con => con.CreateConnectionAndTransactionAsync(cancellationToken))
-                .ReturnsAsync(new DatabaseWork(connection, transaction));
+                .CreateConnectionAndTransactionAsync(cancellationToken)
+                .Returns(new DatabaseWork(connection, transaction));
 
             var devicesCrudService = new DevicesCrudService(
-                deviceRepositoryMock.Object,
-                databaseConnectionMock.Object
+                deviceRepositoryMock,
+                databaseConnectionMock
             );
 
             // Act
@@ -262,20 +233,11 @@ namespace OneGlobalDevicesApiTests.Domain.Services
             );
 
             // Assert
-            deviceRepositoryMock.Verify(
-                expression: repo => repo.FetchByIdAsync(deviceId, connection, transaction, cancellationToken),
-                times: Times.Once
-            );
+            await deviceRepositoryMock.Received(1).FetchByIdAsync(deviceId, connection, transaction, cancellationToken);
 
-            deviceRepositoryMock.Verify(
-                expression: repo => repo.UpdateAsync(currentDevice, connection, transaction, cancellationToken),
-                times: Times.Once
-            );
+            await deviceRepositoryMock.Received(1).UpdateAsync(currentDevice, connection, transaction, cancellationToken);
 
-            transactionMock.Verify(
-                expression: tran => tran.CommitAsync(cancellationToken),
-                times: Times.Once
-            );
+            await transactionMock.Received(1).CommitAsync(cancellationToken);
         }
 
         [Fact]
@@ -296,25 +258,25 @@ namespace OneGlobalDevicesApiTests.Domain.Services
             var newBrand = currentDevice.Brand;
             var newState = currentDevice.State;
 
-            var connectionMock = new Mock<DbConnection>();
-            var transactionMock = new Mock<DbTransaction>();
-            var connection = connectionMock.Object;
-            var transaction = transactionMock.Object;
+            var connectionMock = Substitute.For<DbConnection>();
+            var transactionMock = Substitute.For<DbTransaction>();
+            var connection = connectionMock;
+            var transaction = transactionMock;
 
-            var deviceRepositoryMock = new Mock<IDeviceRepository>();
+            var deviceRepositoryMock = Substitute.For<IDeviceRepository>();
 
             deviceRepositoryMock
-                .Setup(repo => repo.FetchByIdAsync(deviceId, connection, transaction, cancellationToken))
-                .ReturnsAsync(currentDevice);
+                .FetchByIdAsync(deviceId, connection, transaction, cancellationToken)
+                .Returns(currentDevice);
 
-            var databaseConnectionMock = new Mock<IDatabaseConnection>();
+            var databaseConnectionMock = Substitute.For<IDatabaseConnection>();
             databaseConnectionMock
-                .Setup(con => con.CreateConnectionAndTransactionAsync(cancellationToken))
-                .ReturnsAsync(new DatabaseWork(connection, transaction));
+                .CreateConnectionAndTransactionAsync(cancellationToken)
+                .Returns(new DatabaseWork(connection, transaction));
 
             var devicesCrudService = new DevicesCrudService(
-                deviceRepositoryMock.Object,
-                databaseConnectionMock.Object
+                deviceRepositoryMock,
+                databaseConnectionMock
             );
 
             // Act
@@ -323,20 +285,11 @@ namespace OneGlobalDevicesApiTests.Domain.Services
             );
 
             // Assert
-            deviceRepositoryMock.Verify(
-                expression: repo => repo.FetchByIdAsync(deviceId, connection, transaction, cancellationToken),
-                times: Times.Once
-            );
+            await deviceRepositoryMock.Received(1).FetchByIdAsync(deviceId, connection, transaction, cancellationToken);
 
-            deviceRepositoryMock.Verify(
-                expression: repo => repo.UpdateAsync(currentDevice, connection, transaction, cancellationToken),
-                times: Times.Never
-            );
+            await deviceRepositoryMock.Received(0).UpdateAsync(currentDevice, connection, transaction, cancellationToken);
 
-            transactionMock.Verify(
-                expression: tran => tran.CommitAsync(cancellationToken),
-                times: Times.Never
-            );
+            await transactionMock.Received(0).CommitAsync(cancellationToken);
         }
 
         [Fact]
@@ -357,51 +310,42 @@ namespace OneGlobalDevicesApiTests.Domain.Services
             var newName = currentDevice.Name;
             var newState = currentDevice.State;
 
-            var connectionMock = new Mock<DbConnection>();
-            var transactionMock = new Mock<DbTransaction>();
-            var connection = connectionMock.Object;
-            var transaction = transactionMock.Object;
+            var connectionMock = Substitute.For<DbConnection>();
+            var transactionMock = Substitute.For<DbTransaction>();
+            var connection = connectionMock;
+            var transaction = transactionMock;
 
-            var deviceRepositoryMock = new Mock<IDeviceRepository>();
+            var deviceRepositoryMock = Substitute.For<IDeviceRepository>();
 
             deviceRepositoryMock
-                .Setup(repo => repo.FetchByIdAsync(deviceId, connection, transaction, cancellationToken))
-                .ReturnsAsync(currentDevice);
+                .FetchByIdAsync(deviceId, connection, transaction, cancellationToken)
+                .Returns(currentDevice);
 
-            var databaseConnectionMock = new Mock<IDatabaseConnection>();
+            var databaseConnectionMock = Substitute.For<IDatabaseConnection>();
             databaseConnectionMock
-                .Setup(con => con.CreateConnectionAndTransactionAsync(cancellationToken))
-                .ReturnsAsync(new DatabaseWork(connection, transaction));
+                .CreateConnectionAndTransactionAsync(cancellationToken)
+                .Returns(new DatabaseWork(connection, transaction));
 
             var devicesCrudService = new DevicesCrudService(
-                deviceRepositoryMock.Object,
-                databaseConnectionMock.Object
+                deviceRepositoryMock,
+                databaseConnectionMock
             );
 
             // Act
-            await Assert.ThrowsAsync<DeviceBusinessException>(async () =>
-                await devicesCrudService.UpdateDeviceAsync(deviceId,
+            var act = async () => await devicesCrudService.UpdateDeviceAsync(deviceId,
                 newName: null,
                 newBrand: null,
                 newState: null,
-                cancellationToken)
-            );
+                cancellationToken);
 
             // Assert
-            deviceRepositoryMock.Verify(
-                expression: repo => repo.FetchByIdAsync(deviceId, connection, transaction, cancellationToken),
-                times: Times.Never
-            );
+            await act.Should().ThrowAsync<DeviceBusinessException>();
 
-            deviceRepositoryMock.Verify(
-                expression: repo => repo.UpdateAsync(currentDevice, connection, transaction, cancellationToken),
-                times: Times.Never
-            );
+            await deviceRepositoryMock.Received(0).FetchByIdAsync(deviceId, connection, transaction, cancellationToken);
 
-            transactionMock.Verify(
-                expression: tran => tran.CommitAsync(cancellationToken),
-                times: Times.Never
-            );
+            await deviceRepositoryMock.Received(0).UpdateAsync(currentDevice, connection, transaction, cancellationToken);
+
+            await transactionMock.Received(0).CommitAsync(cancellationToken);
         }
 
         [Fact]
@@ -417,47 +361,38 @@ namespace OneGlobalDevicesApiTests.Domain.Services
             var newBrand = "Apple 2";
             var newState = DeviceStateEnum.InUse;
 
-            var connectionMock = new Mock<DbConnection>();
-            var transactionMock = new Mock<DbTransaction>();
-            var connection = connectionMock.Object;
-            var transaction = transactionMock.Object;
+            var connectionMock = Substitute.For<DbConnection>();
+            var transactionMock = Substitute.For<DbTransaction>();
+            var connection = connectionMock;
+            var transaction = transactionMock;
 
-            var deviceRepositoryMock = new Mock<IDeviceRepository>();
+            var deviceRepositoryMock = Substitute.For<IDeviceRepository>();
 
             deviceRepositoryMock
-                .Setup(repo => repo.FetchByIdAsync(deviceId, connection, transaction, cancellationToken))
-                .ReturnsAsync(currentDevice);
+                .FetchByIdAsync(deviceId, connection, transaction, cancellationToken)
+                .Returns(currentDevice);
 
-            var databaseConnectionMock = new Mock<IDatabaseConnection>();
+            var databaseConnectionMock = Substitute.For<IDatabaseConnection>();
             databaseConnectionMock
-                .Setup(con => con.CreateConnectionAndTransactionAsync(cancellationToken))
-                .ReturnsAsync(new DatabaseWork(connection, transaction));
+                .CreateConnectionAndTransactionAsync(cancellationToken)
+                .Returns(new DatabaseWork(connection, transaction));
 
             var devicesCrudService = new DevicesCrudService(
-                deviceRepositoryMock.Object,
-                databaseConnectionMock.Object
+                deviceRepositoryMock,
+                databaseConnectionMock
             );
 
             // Act
-            await Assert.ThrowsAsync<KeyNotFoundException>(async () =>
-                await devicesCrudService.UpdateDeviceAsync(deviceId, newName, newBrand, newState, cancellationToken)
-            );
+            var act = async () => await devicesCrudService.UpdateDeviceAsync(deviceId, newName, newBrand, newState, cancellationToken);
 
             // Assert
-            deviceRepositoryMock.Verify(
-                expression: repo => repo.FetchByIdAsync(deviceId, connection, transaction, cancellationToken),
-                times: Times.Once
-            );
+            await act.Should().ThrowAsync<KeyNotFoundException>();
 
-            deviceRepositoryMock.Verify(
-                expression: repo => repo.UpdateAsync(It.IsAny<DeviceEntity>(), connection, transaction, cancellationToken),
-                times: Times.Never
-            );
+            await deviceRepositoryMock.Received(1).FetchByIdAsync(deviceId, connection, transaction, cancellationToken);
 
-            transactionMock.Verify(
-                expression: tran => tran.CommitAsync(cancellationToken),
-                times: Times.Never
-            );
+            await deviceRepositoryMock.Received(0).UpdateAsync(Arg.Any<DeviceEntity>(), connection, transaction, cancellationToken);
+
+            await transactionMock.Received(0).CommitAsync(cancellationToken);
         }
 
         [Fact]
@@ -478,47 +413,38 @@ namespace OneGlobalDevicesApiTests.Domain.Services
             var newBrand = currentDevice.Brand;
             var newState = currentDevice.State;
 
-            var connectionMock = new Mock<DbConnection>();
-            var transactionMock = new Mock<DbTransaction>();
-            var connection = connectionMock.Object;
-            var transaction = transactionMock.Object;
+            var connectionMock = Substitute.For<DbConnection>();
+            var transactionMock = Substitute.For<DbTransaction>();
+            var connection = connectionMock;
+            var transaction = transactionMock;
 
-            var deviceRepositoryMock = new Mock<IDeviceRepository>();
+            var deviceRepositoryMock = Substitute.For<IDeviceRepository>();
 
             deviceRepositoryMock
-                .Setup(repo => repo.FetchByIdAsync(deviceId, connection, transaction, cancellationToken))
-                .ReturnsAsync(currentDevice);
+                .FetchByIdAsync(deviceId, connection, transaction, cancellationToken)
+                .Returns(currentDevice);
 
-            var databaseConnectionMock = new Mock<IDatabaseConnection>();
+            var databaseConnectionMock = Substitute.For<IDatabaseConnection>();
             databaseConnectionMock
-                .Setup(con => con.CreateConnectionAndTransactionAsync(cancellationToken))
-                .ReturnsAsync(new DatabaseWork(connection, transaction));
+                .CreateConnectionAndTransactionAsync(cancellationToken)
+                .Returns(new DatabaseWork(connection, transaction));
 
             var devicesCrudService = new DevicesCrudService(
-                deviceRepositoryMock.Object,
-                databaseConnectionMock.Object
+                deviceRepositoryMock,
+                databaseConnectionMock
             );
 
             // Act
-            await Assert.ThrowsAsync<DeviceBusinessException>(async () =>
-                await devicesCrudService.UpdateDeviceAsync(deviceId, newName, newBrand, newState, cancellationToken)
-            );
+            var act = async () => await devicesCrudService.UpdateDeviceAsync(deviceId, newName, newBrand, newState, cancellationToken);
 
             // Assert
-            deviceRepositoryMock.Verify(
-                expression: repo => repo.FetchByIdAsync(deviceId, connection, transaction, cancellationToken),
-                times: Times.Once
-            );
+            await act.Should().ThrowAsync<DeviceBusinessException>();
 
-            deviceRepositoryMock.Verify(
-                expression: repo => repo.UpdateAsync(currentDevice, connection, transaction, cancellationToken),
-                times: Times.Never
-            );
+            await deviceRepositoryMock.Received(1).FetchByIdAsync(deviceId, connection, transaction, cancellationToken);
 
-            transactionMock.Verify(
-                expression: tran => tran.CommitAsync(cancellationToken),
-                times: Times.Never
-            );
+            await deviceRepositoryMock.Received(0).UpdateAsync(currentDevice, connection, transaction, cancellationToken);
+
+            await transactionMock.Received(0).CommitAsync(cancellationToken);
         }
 
         [Fact]
@@ -539,47 +465,38 @@ namespace OneGlobalDevicesApiTests.Domain.Services
             var newName = currentDevice.Name;
             var newState = currentDevice.State;
 
-            var connectionMock = new Mock<DbConnection>();
-            var transactionMock = new Mock<DbTransaction>();
-            var connection = connectionMock.Object;
-            var transaction = transactionMock.Object;
+            var connectionMock = Substitute.For<DbConnection>();
+            var transactionMock = Substitute.For<DbTransaction>();
+            var connection = connectionMock;
+            var transaction = transactionMock;
 
-            var deviceRepositoryMock = new Mock<IDeviceRepository>();
+            var deviceRepositoryMock = Substitute.For<IDeviceRepository>();
 
             deviceRepositoryMock
-                .Setup(repo => repo.FetchByIdAsync(deviceId, connection, transaction, cancellationToken))
-                .ReturnsAsync(currentDevice);
+                .FetchByIdAsync(deviceId, connection, transaction, cancellationToken)
+                .Returns(currentDevice);
 
-            var databaseConnectionMock = new Mock<IDatabaseConnection>();
+            var databaseConnectionMock = Substitute.For<IDatabaseConnection>();
             databaseConnectionMock
-                .Setup(con => con.CreateConnectionAndTransactionAsync(cancellationToken))
-                .ReturnsAsync(new DatabaseWork(connection, transaction));
+                .CreateConnectionAndTransactionAsync(cancellationToken)
+                .Returns(new DatabaseWork(connection, transaction));
 
             var devicesCrudService = new DevicesCrudService(
-                deviceRepositoryMock.Object,
-                databaseConnectionMock.Object
+                deviceRepositoryMock,
+                databaseConnectionMock
             );
 
             // Act
-            await Assert.ThrowsAsync<DeviceBusinessException>(async () =>
-                await devicesCrudService.UpdateDeviceAsync(deviceId, newName, newBrand, newState, cancellationToken)
-            );
+            var act = async () => await devicesCrudService.UpdateDeviceAsync(deviceId, newName, newBrand, newState, cancellationToken);
 
             // Assert
-            deviceRepositoryMock.Verify(
-                expression: repo => repo.FetchByIdAsync(deviceId, connection, transaction, cancellationToken),
-                times: Times.Once
-            );
+            await act.Should().ThrowAsync<DeviceBusinessException>();
 
-            deviceRepositoryMock.Verify(
-                expression: repo => repo.UpdateAsync(currentDevice, connection, transaction, cancellationToken),
-                times: Times.Never
-            );
+            await deviceRepositoryMock.Received(1).FetchByIdAsync(deviceId, connection, transaction, cancellationToken);
 
-            transactionMock.Verify(
-                expression: tran => tran.CommitAsync(cancellationToken),
-                times: Times.Never
-            );
+            await deviceRepositoryMock.Received(0).UpdateAsync(currentDevice, connection, transaction, cancellationToken);
+
+            await transactionMock.Received(0).CommitAsync(cancellationToken);
         }
 
         #endregion
@@ -593,34 +510,31 @@ namespace OneGlobalDevicesApiTests.Domain.Services
             var deviceId = Guid.NewGuid();
             var cancellationToken = new CancellationToken();
 
-            var deviceRepositoryMock = new Mock<IDeviceRepository>();
+            var deviceRepositoryMock = Substitute.For<IDeviceRepository>();
             deviceRepositoryMock
-                .Setup(repo => repo.FetchByIdAsync(deviceId, cancellationToken))
-                .ReturnsAsync(new DeviceEntity
+                .FetchByIdAsync(deviceId, cancellationToken)
+                .Returns(new DeviceEntity
                 {
                     Id = deviceId,
                     Name = "Iphone 17 PRO MAX",
                     Brand = "Apple"
                 });
 
-            var databaseConnectionMock = new Mock<IDatabaseConnection>();
+            var databaseConnectionMock = Substitute.For<IDatabaseConnection>();
 
             var devicesCrudService = new DevicesCrudService(
-                deviceRepositoryMock.Object,
-                databaseConnectionMock.Object
+                deviceRepositoryMock,
+                databaseConnectionMock
             );
 
             // Act
             var result = await devicesCrudService.FetchSingleDeviceAsync(deviceId, cancellationToken);
 
             // Assert
-            deviceRepositoryMock.Verify(
-                expression: repo => repo.FetchByIdAsync(deviceId, cancellationToken),
-                times: Times.Once
-            );
+            await deviceRepositoryMock.Received(1).FetchByIdAsync(deviceId, cancellationToken);
 
-            Assert.NotNull(result);
-            Assert.Equal(deviceId, result.Id);
+            result.Should().NotBeNull();
+            result!.Id.Should().Be(deviceId);
         }
 
         [Fact]
@@ -630,10 +544,10 @@ namespace OneGlobalDevicesApiTests.Domain.Services
             var deviceId = Guid.NewGuid();
             var cancellationToken = new CancellationToken();
 
-            var deviceRepositoryMock = new Mock<IDeviceRepository>();
+            var deviceRepositoryMock = Substitute.For<IDeviceRepository>();
             deviceRepositoryMock
-                .Setup(repo => repo.FetchAllAsync(cancellationToken))
-                .ReturnsAsync(new List<DeviceEntity>
+                .FetchAllAsync(cancellationToken)
+                .Returns(new List<DeviceEntity>
                 {
                     new DeviceEntity
                     {
@@ -643,24 +557,21 @@ namespace OneGlobalDevicesApiTests.Domain.Services
                     }
                 });
 
-            var databaseConnectionMock = new Mock<IDatabaseConnection>();
+            var databaseConnectionMock = Substitute.For<IDatabaseConnection>();
 
             var devicesCrudService = new DevicesCrudService(
-                deviceRepositoryMock.Object,
-                databaseConnectionMock.Object
+                deviceRepositoryMock,
+                databaseConnectionMock
             );
 
             // Act
             var result = await devicesCrudService.FetchAllDevicesAsync(cancellationToken);
 
             // Assert
-            deviceRepositoryMock.Verify(
-                expression: repo => repo.FetchAllAsync(cancellationToken),
-                times: Times.Once
-            );
+            await deviceRepositoryMock.Received(1).FetchAllAsync(cancellationToken);
 
-            Assert.NotNull(result);
-            Assert.Equal(deviceId, result.First().Id);
+            result.Should().NotBeNull();
+            result.First().Id.Should().Be(deviceId);
         }
 
         [Fact]
@@ -671,10 +582,10 @@ namespace OneGlobalDevicesApiTests.Domain.Services
             var deviceBrand = "Apple";
             var cancellationToken = new CancellationToken();
 
-            var deviceRepositoryMock = new Mock<IDeviceRepository>();
+            var deviceRepositoryMock = Substitute.For<IDeviceRepository>();
             deviceRepositoryMock
-                .Setup(repo => repo.FetchAllByBrandAsync(deviceBrand, cancellationToken))
-                .ReturnsAsync(new List<DeviceEntity>
+                .FetchAllByBrandAsync(deviceBrand, cancellationToken)
+                .Returns(new List<DeviceEntity>
                 {
                     new DeviceEntity
                     {
@@ -684,24 +595,21 @@ namespace OneGlobalDevicesApiTests.Domain.Services
                     }
                 });
 
-            var databaseConnectionMock = new Mock<IDatabaseConnection>();
+            var databaseConnectionMock = Substitute.For<IDatabaseConnection>();
 
             var devicesCrudService = new DevicesCrudService(
-                deviceRepositoryMock.Object,
-                databaseConnectionMock.Object
+                deviceRepositoryMock,
+                databaseConnectionMock
             );
 
             // Act
             var result = await devicesCrudService.FetchAllDevicesByBrandAsync(deviceBrand, cancellationToken);
 
             // Assert
-            deviceRepositoryMock.Verify(
-                expression: repo => repo.FetchAllByBrandAsync(deviceBrand, cancellationToken),
-                times: Times.Once
-            );
+            await deviceRepositoryMock.Received(1).FetchAllByBrandAsync(deviceBrand, cancellationToken);
 
-            Assert.NotNull(result);
-            Assert.Equal(deviceId, result.First().Id);
+            result.Should().NotBeNull();
+            result.First().Id.Should().Be(deviceId);
         }
 
         [Fact]
@@ -712,10 +620,10 @@ namespace OneGlobalDevicesApiTests.Domain.Services
             var deviceState = DeviceStateEnum.InUse;
             var cancellationToken = new CancellationToken();
 
-            var deviceRepositoryMock = new Mock<IDeviceRepository>();
+            var deviceRepositoryMock = Substitute.For<IDeviceRepository>();
             deviceRepositoryMock
-                .Setup(repo => repo.FetchAllByStateAsync(deviceState, cancellationToken))
-                .ReturnsAsync(new List<DeviceEntity>
+                .FetchAllByStateAsync(deviceState, cancellationToken)
+                .Returns(new List<DeviceEntity>
                 {
                     new DeviceEntity
                     {
@@ -726,24 +634,21 @@ namespace OneGlobalDevicesApiTests.Domain.Services
                     }
                 });
 
-            var databaseConnectionMock = new Mock<IDatabaseConnection>();
+            var databaseConnectionMock = Substitute.For<IDatabaseConnection>();
 
             var devicesCrudService = new DevicesCrudService(
-                deviceRepositoryMock.Object,
-                databaseConnectionMock.Object
+                deviceRepositoryMock,
+                databaseConnectionMock
             );
 
             // Act
             var result = await devicesCrudService.FetchAllDevicesByStateAsync(deviceState, cancellationToken);
 
             // Assert
-            deviceRepositoryMock.Verify(
-                expression: repo => repo.FetchAllByStateAsync(deviceState, cancellationToken),
-                times: Times.Once
-            );
+            await deviceRepositoryMock.Received(1).FetchAllByStateAsync(deviceState, cancellationToken);
 
-            Assert.NotNull(result);
-            Assert.Equal(deviceId, result.First().Id);
+            result.Should().NotBeNull();
+            result.First().Id.Should().Be(deviceId);
         }
 
         #endregion

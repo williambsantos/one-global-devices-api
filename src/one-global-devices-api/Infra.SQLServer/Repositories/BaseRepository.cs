@@ -9,7 +9,7 @@
             _logger = logger;
         }
 
-        protected async Task LogActionAsync(string logPrefix, Func<Task<int>> func)
+        protected async Task<int> LogActionAsync(string logPrefix, Func<Task<int>> func)
         {
             try
             {
@@ -18,6 +18,8 @@
                 int rowsAffected = await func();
 
                 _logger.LogInformation("{logPrefix} rows affected: {rowsAffected}", logPrefix, rowsAffected);
+
+                return rowsAffected;
             }
             catch (Exception ex)
             {
@@ -28,7 +30,7 @@
             {
                 _logger.LogInformation("{logPrefix} FINISH", logPrefix);
             }
-        }
+        }     
     }
 }
 

@@ -3,55 +3,63 @@ using OneGlobalDevicesApi.Domain.Services;
 using OneGlobalDevicesApi.Infra.SQLServer.Connections;
 using OneGlobalDevicesApi.Infra.SQLServer.Repositories;
 using System.Text.Json.Serialization;
+using System.Diagnostics.CodeAnalysis;
 
-var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
+[ExcludeFromCodeCoverage]
+public class Program
+{
+    public static void Main(string[] args)
     {
-        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
-        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-    });
+        var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+        // Add services to the container.
 
-#region Service Database Registration
+        builder.Services.AddControllers()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            });
 
-var databaseConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-if (string.IsNullOrWhiteSpace(databaseConnectionString))
-    throw new InvalidOperationException("Connection string not found.");
+        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddSwaggerGen();
 
-builder.Services.AddScoped<IDatabaseConnection, DatabaseConnection>(sp =>
-{
-    var logger = sp.GetRequiredService<ILogger<DatabaseConnection>>();
-    return new DatabaseConnection(databaseConnectionString, logger);
-});
+        #region Service Database Registration
 
-#endregion
+        var databaseConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+        if (string.IsNullOrWhiteSpace(databaseConnectionString))
+            throw new InvalidOperationException("Connection string not found.");
 
-#region Services Registration
+        builder.Services.AddScoped<IDatabaseConnection, DatabaseConnection>(sp =>
+        {
+            var logger = sp.GetRequiredService<ILogger<DatabaseConnection>>();
+            return new DatabaseConnection(databaseConnectionString, logger);
+        });
 
-builder.Services.AddScoped<IDevicesCrudService, DevicesCrudService>();
-builder.Services.AddScoped<IDeviceRepository, DeviceSqlServerRepository>();
+        #endregion
 
-#endregion
+        #region Services Registration
 
-var app = builder.Build();
+        builder.Services.AddScoped<IDevicesCrudService, DevicesCrudService>();
+        builder.Services.AddScoped<IDeviceRepository, DeviceSqlServerRepository>();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
+        #endregion
+
+        var app = builder.Build();
+
+        // Configure the HTTP request pipeline.
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseSwagger();
+            app.UseSwaggerUI();
+        }
+
+        app.UseHttpsRedirection();
+
+        app.UseAuthorization();
+
+        app.MapControllers();
+
+        app.Run();
+    }
 }
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.Run();

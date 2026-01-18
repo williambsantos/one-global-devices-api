@@ -94,20 +94,14 @@ namespace OneGlobalDevicesApi.Domain.Services
         /// <returns>DeviceEntity updated</returns>
         /// <exception cref="DeviceBusinessException"></exception>
         /// <exception cref="KeyNotFoundException"></exception>
-        public async Task<DeviceEntity> UpdateDeviceAsync(Guid id, 
+        public async Task<DeviceEntity> UpdateDeviceAsync(Guid id,
             string? newName, string? newBrand, DeviceStateEnum? newState,
             CancellationToken cancellationToken)
         {
-            // Check if there are changes
-            if (newName == null && 
-                newBrand == null && 
-                newState == null
-                )
-            {
-                throw new DeviceBusinessException("At least one field (name, brand, state) must be provided for update.");
-            }
+            ValidateUpdateRequest(newName, newBrand, newState);
 
-            using var databaseWork = await _databaseConnection.CreateConnectionAndTransactionAsync(cancellationToken);
+            using var databaseWork = await _databaseConnection.
+                CreateConnectionAndTransactionAsync(cancellationToken);
 
             var connection = databaseWork.Connection;
             var transaction = databaseWork.Transaction;
@@ -118,48 +112,25 @@ namespace OneGlobalDevicesApi.Domain.Services
                 transaction: transaction,
                 cancellationToken: cancellationToken
             );
-            
+
             if (currentDevice == null)
-            {
                 throw new KeyNotFoundException($"Device with ID {id} not found.");
-            }
+                
+            var (finalName, finalBrand, finalState) = PrepareToChanges(
+                currentDevice, newName, newBrand, newState
+            );
 
-            // defensive program
-            currentDevice.Name ??= string.Empty;
-            currentDevice.Brand ??= string.Empty;
-
-            // check updates. If null, keep current value
-            newName ??= currentDevice.Name;
-            newBrand ??= currentDevice.Brand;
-            newState ??= currentDevice.State;
-
-            if (currentDevice.State == newState &&
-                currentDevice.Name.Equals(newName, StringComparison.InvariantCultureIgnoreCase) &&
-                currentDevice.Brand.Equals(newBrand, StringComparison.InvariantCultureIgnoreCase))
-            {
-                // there are no changes, return information as if updated
+            // there are no changes, return information as if updated
+            if (NoChangesDetected(currentDevice, finalName, finalBrand, finalState))
                 return currentDevice;
-            }
 
             // Check rules to update device in Use
-            if (currentDevice.State == DeviceStateEnum.InUse)
-            {
-                // Check if there are changes at name
-                if (currentDevice.Name != newName)
-                {
-                    throw new DeviceBusinessException("Cannot update device name while it is In Use.");
-                }
-
-                if (currentDevice.Brand != newBrand)
-                {
-                    throw new DeviceBusinessException("Cannot update device brand while it is In Use.");
-                }
-            }
+            ValidateUpdateBusinessRules(currentDevice, finalName, finalBrand);
 
             // prepare entity to update at repository
-            currentDevice.Name = newName;
-            currentDevice.Brand = newBrand;
-            currentDevice.State = newState.Value;
+            currentDevice.Name = finalName;
+            currentDevice.Brand = finalBrand;
+            currentDevice.State = finalState;
 
             await _deviceRepository.UpdateAsync(
                 currentDevice,
@@ -168,8 +139,43 @@ namespace OneGlobalDevicesApi.Domain.Services
             );
 
             await transaction.CommitAsync(cancellationToken);
-            
+
             return currentDevice;
+        }
+
+        private static void ValidateUpdateRequest(string? newName, string? newBrand, DeviceStateEnum? newState)
+        {
+            if (newName == null && newBrand == null && newState == null)
+                throw new DeviceBusinessException("At least one field must be provided for update.");
+        }
+
+        private static (string finalName, string finalBrand, DeviceStateEnum finalState) PrepareToChanges(
+            DeviceEntity currentDevice, string? newName, string? newBrand, DeviceStateEnum? newState)
+        {
+            // check updates. If null, keep current value
+            var finalName = newName ?? currentDevice?.Name ?? string.Empty;
+            var finalBrand = newBrand ?? currentDevice?.Brand ?? string.Empty;
+            var finalState = newState ?? currentDevice?.State ?? default;
+
+            return (finalName, finalBrand, finalState);
+        }
+
+        private static void ValidateUpdateBusinessRules(DeviceEntity currentDevice, string newName, string newBrand)
+        {
+            if (currentDevice.State == DeviceStateEnum.InUse)
+            {
+                if (currentDevice.Name != newName)
+                    throw new DeviceBusinessException("Cannot update device name while it is In Use.");
+                if (currentDevice.Brand != newBrand)
+                    throw new DeviceBusinessException("Cannot update device brand while it is In Use.");
+            }
+        }        
+
+        private static bool NoChangesDetected(DeviceEntity currentDevice, string finalName, string finalBrand, DeviceStateEnum finalState)
+        {
+            return currentDevice.State == finalState &&
+                   currentDevice.Name.Equals(finalName, StringComparison.InvariantCultureIgnoreCase) &&
+                   currentDevice.Brand.Equals(finalBrand, StringComparison.InvariantCultureIgnoreCase);
         }
 
         #endregion
@@ -184,7 +190,7 @@ namespace OneGlobalDevicesApi.Domain.Services
             var transaction = databaseWork.Transaction;
 
             DeviceEntity? currentDevice = await _deviceRepository.FetchByIdAsync(
-                deviceId: id, 
+                deviceId: id,
                 connection: connection,
                 transaction: transaction,
                 cancellationToken: cancellationToken

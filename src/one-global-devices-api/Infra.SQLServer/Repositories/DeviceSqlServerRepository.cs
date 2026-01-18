@@ -22,12 +22,12 @@ namespace OneGlobalDevicesApi.Infra.SQLServer.Repositories
 
         #region Save | Update | Delete
 
-        public async Task SaveAsync(DeviceEntity entity,
+        public async Task<int> SaveAsync(DeviceEntity entity,
             CancellationToken cancellationToken = default)
         {
             string logPrefix = $"{nameof(SaveAsync)}. Id: {entity?.Id}. ";
 
-            await LogActionAsync(logPrefix, async () =>
+            return await LogActionAsync(logPrefix, async () =>
             {
                 ArgumentNullException.ThrowIfNull(entity);
 
@@ -59,13 +59,13 @@ VALUES (@Id, @Name, @Brand, @State,@CreationTime);
             });
         }
 
-        public async Task UpdateAsync(DeviceEntity entity,
+        public async Task<int> UpdateAsync(DeviceEntity entity,
             DbConnection connection, DbTransaction transaction,
             CancellationToken cancellationToken = default)
         {
             string logPrefix = $"{nameof(UpdateAsync)}. Id: {entity?.Id}. ";
 
-            await LogActionAsync(logPrefix, async () =>
+            return await LogActionAsync(logPrefix, async () =>
             {
                 ArgumentNullException.ThrowIfNull(connection);
 
@@ -98,13 +98,13 @@ WHERE Id = @Id
             });
         }
 
-        public async Task DeleteAsync(Guid deviceId,
+        public async Task<int> DeleteAsync(Guid deviceId,
             DbConnection connection, DbTransaction transaction,
             CancellationToken cancellationToken = default)
         {
             string logPrefix = $"{nameof(UpdateAsync)}. Id: {deviceId}. ";
 
-            await LogActionAsync(logPrefix, async () =>
+            return await LogActionAsync(logPrefix, async () =>
             {
                 if (connection == null)
                     throw new ArgumentNullException(nameof(connection));
@@ -118,7 +118,7 @@ WHERE Id = @Id
                     Id = deviceId,
                 };
 
-                var rowsAffected = await connection.ExecuteScalarAsync<int>(new CommandDefinition(
+                var rowsAffected = await connection.ExecuteAsync(new CommandDefinition(
                     commandText: sql,
                     parameters: parameters,
                     transaction: transaction,
