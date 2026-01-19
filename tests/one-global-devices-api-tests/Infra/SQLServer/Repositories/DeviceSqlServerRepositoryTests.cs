@@ -1,13 +1,10 @@
-using Xunit;
 using NSubstitute;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using OneGlobalDevicesApi.Domain.Entities;
 using OneGlobalDevicesApi.Domain.Repositories;
-using OneGlobalDevicesApi.Infra.SQLServer.Connections;
 using OneGlobalDevicesApi.Infra.SQLServer.Repositories;
 using System.Data.Common;
-using Dapper;
 using NSubstitute.DbConnection;
 
 namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
