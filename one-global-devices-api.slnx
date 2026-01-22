@@ -1,10 +1,11 @@
 <Solution>
   <Folder Name="/databases/">
     <File Path="databases/00-create-database.sql" />
-    <File Path="databases/01-create-tables.sql" />
     <File Path="databases/database-test.md" />
   </Folder>
-  <Folder Name="/docs/" />
+  <Folder Name="/docs/">
+    <File Path="docs/1GLOBAL_Backend_CSharp_Challenge.pdf" />
+  </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".gitignore" />
     <File Path="README.md" />

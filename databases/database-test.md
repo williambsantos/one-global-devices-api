@@ -13,7 +13,7 @@ docker-compose up --build -d
 ## (powershell)
 
 ```
-cd ./src/one-global-devices-api/databases
+cd ./databases
 
 docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=SqlServer2022!" `
   -p 1433:1433 `
@@ -29,7 +29,7 @@ docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=SqlServer2022!" `
 ## bash
 
 ```
-cd ./src/one-global-devices-api/databases
+cd ./databases
 
 docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=SqlServer2022!" \
   -p 1433:1433 \
