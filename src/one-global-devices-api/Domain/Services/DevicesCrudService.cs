@@ -1,9 +1,10 @@
-﻿using OneGlobalDevicesApi.Domain.Entities;
+﻿using System.Data;
+using System.Data.Common;
+using System.Threading;
+using OneGlobalDevicesApi.Domain.Entities;
 using OneGlobalDevicesApi.Domain.Exceptions;
 using OneGlobalDevicesApi.Domain.Repositories;
 using OneGlobalDevicesApi.Infra.SQLServer.Connections;
-using System.Data;
-using System.Data.Common;
 
 namespace OneGlobalDevicesApi.Domain.Services
 {
@@ -37,6 +38,10 @@ namespace OneGlobalDevicesApi.Domain.Services
     {
         public readonly IDeviceRepository _deviceRepository;
         private readonly IDatabaseConnection _databaseConnection;
+        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(
+            initialCount: 1,
+            maxCount: 1
+        );
 
         public DevicesCrudService(
             IDeviceRepository deviceRepository,
@@ -58,23 +63,31 @@ namespace OneGlobalDevicesApi.Domain.Services
         public async Task<DeviceEntity> CreateNewDeviceAsync(string name, string brand,
             CancellationToken cancellationToken)
         {
-            var device = new DeviceEntity
+            await _semaphore.WaitAsync(cancellationToken);
+            try
             {
-                Name = name,
-                Brand = brand,
-                State = DeviceStateEnum.Available
-            };
+                var device = new DeviceEntity
+                {
+                    Name = name,
+                    Brand = brand,
+                    State = DeviceStateEnum.Available
+                };
 
-            // TODO: check with the team Business Rules about the device creation, like as unique name
-            //if (string.IsNullOrWhiteSpace(name))
-            //    throw new DeviceBusinessException("Device name cannot be null or empty.");
+                // TODO: check with the team Business Rules about the device creation, like as unique name
+                //if (string.IsNullOrWhiteSpace(name))
+                //    throw new DeviceBusinessException("Device name cannot be null or empty.");
 
-            //if (string.IsNullOrWhiteSpace(brand))
-            //    throw new DeviceBusinessException("Device brand cannot be null or empty.");
+                //if (string.IsNullOrWhiteSpace(brand))
+                //    throw new DeviceBusinessException("Device brand cannot be null or empty.");
 
-            await _deviceRepository.SaveAsync(device, cancellationToken);
+                await _deviceRepository.SaveAsync(device, cancellationToken);
 
-            return device;
+                return device;
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
         }
 
         #endregion
@@ -98,49 +111,57 @@ namespace OneGlobalDevicesApi.Domain.Services
             string? newName, string? newBrand, DeviceStateEnum? newState,
             CancellationToken cancellationToken)
         {
-            ValidateUpdateRequest(newName, newBrand, newState);
+            await _semaphore.WaitAsync(cancellationToken);
+            try
+            {
+                ValidateUpdateRequest(newName, newBrand, newState);
 
-            using var databaseWork = await _databaseConnection.
-                CreateConnectionAndTransactionAsync(cancellationToken);
+                using var databaseWork = await _databaseConnection.
+                    CreateConnectionAndTransactionAsync(cancellationToken);
 
-            var connection = databaseWork.Connection;
-            var transaction = databaseWork.Transaction;
+                var connection = databaseWork.Connection;
+                var transaction = databaseWork.Transaction;
 
-            DeviceEntity? currentDevice = await _deviceRepository.FetchByIdAsync(
-                deviceId: id,
-                connection: connection,
-                transaction: transaction,
-                cancellationToken: cancellationToken
-            );
+                DeviceEntity? currentDevice = await _deviceRepository.FetchByIdAsync(
+                    deviceId: id,
+                    connection: connection,
+                    transaction: transaction,
+                    cancellationToken: cancellationToken
+                );
 
-            if (currentDevice == null)
-                throw new KeyNotFoundException($"Device with ID {id} not found.");
-                
-            var (finalName, finalBrand, finalState) = PrepareToChanges(
-                currentDevice, newName, newBrand, newState
-            );
+                if (currentDevice == null)
+                    throw new KeyNotFoundException($"Device with ID {id} not found.");
 
-            // there are no changes, return information as if updated
-            if (NoChangesDetected(currentDevice, finalName, finalBrand, finalState))
+                var (finalName, finalBrand, finalState) = PrepareToChanges(
+                    currentDevice, newName, newBrand, newState
+                );
+
+                // there are no changes, return information as if updated
+                if (NoChangesDetected(currentDevice, finalName, finalBrand, finalState))
+                    return currentDevice;
+
+                // Check rules to update device in Use
+                ValidateUpdateBusinessRules(currentDevice, finalName, finalBrand);
+
+                // prepare entity to update at repository
+                currentDevice.Name = finalName;
+                currentDevice.Brand = finalBrand;
+                currentDevice.State = finalState;
+
+                await _deviceRepository.UpdateAsync(
+                    currentDevice,
+                    connection, transaction,
+                    cancellationToken
+                );
+
+                await transaction.CommitAsync(cancellationToken);
+
                 return currentDevice;
-
-            // Check rules to update device in Use
-            ValidateUpdateBusinessRules(currentDevice, finalName, finalBrand);
-
-            // prepare entity to update at repository
-            currentDevice.Name = finalName;
-            currentDevice.Brand = finalBrand;
-            currentDevice.State = finalState;
-
-            await _deviceRepository.UpdateAsync(
-                currentDevice,
-                connection, transaction,
-                cancellationToken
-            );
-
-            await transaction.CommitAsync(cancellationToken);
-
-            return currentDevice;
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
         }
 
         private static void ValidateUpdateRequest(string? newName, string? newBrand, DeviceStateEnum? newState)
@@ -169,7 +190,7 @@ namespace OneGlobalDevicesApi.Domain.Services
                 if (currentDevice.Brand != newBrand)
                     throw new DeviceBusinessException("Cannot update device brand while it is In Use.");
             }
-        }        
+        }
 
         private static bool NoChangesDetected(DeviceEntity currentDevice, string finalName, string finalBrand, DeviceStateEnum finalState)
         {
@@ -184,35 +205,43 @@ namespace OneGlobalDevicesApi.Domain.Services
 
         public async Task DeleteSingleDeviceAsync(Guid id, CancellationToken cancellationToken)
         {
-            using var databaseWork = await _databaseConnection.CreateConnectionAndTransactionAsync(cancellationToken);
-
-            var connection = databaseWork.Connection;
-            var transaction = databaseWork.Transaction;
-
-            DeviceEntity? currentDevice = await _deviceRepository.FetchByIdAsync(
-                deviceId: id,
-                connection: connection,
-                transaction: transaction,
-                cancellationToken: cancellationToken
-            );
-            if (currentDevice == null)
+            await _semaphore.WaitAsync(cancellationToken);
+            try
             {
-                throw new KeyNotFoundException($"Device with ID {id} not found.");
-            }
+                using var databaseWork = await _databaseConnection.CreateConnectionAndTransactionAsync(cancellationToken);
 
-            // Check rules to update device in Use
-            if (currentDevice.State == DeviceStateEnum.InUse)
+                var connection = databaseWork.Connection;
+                var transaction = databaseWork.Transaction;
+
+                DeviceEntity? currentDevice = await _deviceRepository.FetchByIdAsync(
+                    deviceId: id,
+                    connection: connection,
+                    transaction: transaction,
+                    cancellationToken: cancellationToken
+                );
+                if (currentDevice == null)
+                {
+                    throw new KeyNotFoundException($"Device with ID {id} not found.");
+                }
+
+                // Check rules to update device in Use
+                if (currentDevice.State == DeviceStateEnum.InUse)
+                {
+                    throw new DeviceBusinessException("Cannot delete device while it is In Use.");
+                }
+
+                await _deviceRepository.DeleteAsync(id,
+                    connection,
+                    transaction,
+                    cancellationToken
+                );
+
+                await transaction.CommitAsync();
+            }
+            finally
             {
-                throw new DeviceBusinessException("Cannot delete device while it is In Use.");
+                _semaphore.Release();
             }
-
-            await _deviceRepository.DeleteAsync(id,
-                connection,
-                transaction,
-                cancellationToken
-            );
-
-            await transaction.CommitAsync();
         }
 
         #endregion
