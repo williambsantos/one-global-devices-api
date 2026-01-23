@@ -334,11 +334,14 @@ namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
             var paginationRequest = new PaginationRequest { PageNumber = 1, PageSize = 100 };
 
             // Act
-            var result = await repository.FetchAllAsync(paginationRequest);
+            var result = await repository.FetchAllAsync(null, null, paginationRequest);
 
             // Assert
             result.Should().NotBeNull();
             result.Content.Should().HaveCount(2);
+            result.TotalElements.Should().Be(2);
+            result.Pageable.PageNumber.Should().Be(1);
+            result.Pageable.PageSize.Should().Be(100);
         }
 
         [Fact]
@@ -368,11 +371,12 @@ namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
             var paginationRequest = new PaginationRequest { PageNumber = 1, PageSize = 100 };
 
             // Act
-            var result = await repository.FetchAllAsync(paginationRequest);
+            var result = await repository.FetchAllAsync(null, null, paginationRequest);
 
             // Assert
             result.Should().NotBeNull();
             result.Content.Should().BeEmpty();
+            result.TotalElements.Should().Be(0);
         }
 
         #endregion
@@ -420,12 +424,13 @@ namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
             var paginationRequest = new PaginationRequest { PageNumber = 1, PageSize = 100 };
 
             // Act
-            var result = await repository.FetchAllByBrandAsync(brand, paginationRequest);
+            var result = await repository.FetchAllAsync(brand, null, paginationRequest);
 
             // Assert
             result.Should().NotBeNull();
             result.Content.Should().ContainSingle();
             result.Content.Should().OnlyContain(d => d.Brand == brand);
+            result.TotalElements.Should().Be(1);
         }
 
         [Fact]
@@ -456,10 +461,11 @@ namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
             var paginationRequest = new PaginationRequest { PageNumber = 1, PageSize = 100 };
 
             // Act
-            var result = await repository.FetchAllByBrandAsync(brand, paginationRequest);
+            var result = await repository.FetchAllAsync(brand, null, paginationRequest);
 
             // Assert
             result.Content.Should().BeEmpty();
+            result.TotalElements.Should().Be(0);
         }
 
         #endregion
@@ -507,12 +513,13 @@ namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
             var paginationRequest = new PaginationRequest { PageNumber = 1, PageSize = 100 };
 
             // Act
-            var result = await repository.FetchAllByStateAsync(state, paginationRequest);
+            var result = await repository.FetchAllAsync(null, state, paginationRequest);
 
             // Assert
             result.Should().NotBeNull();
             result.Content.Should().ContainSingle();
             result.Content.Should().OnlyContain(d => d.State == state);
+            result.TotalElements.Should().Be(1);
         }
 
         [Theory]
@@ -545,10 +552,11 @@ namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
             var paginationRequest = new PaginationRequest { PageNumber = 1, PageSize = 100 };
 
             // Act
-            var result = await repository.FetchAllByStateAsync(state, paginationRequest);
+            var result = await repository.FetchAllAsync(null, state, paginationRequest);
 
             // Assert
             result.Content.Should().BeEmpty();
+            result.TotalElements.Should().Be(0);
         }
 
         #endregion

@@ -106,8 +106,7 @@ WHERE Id = @Id
 
             return await LogActionAsync(logPrefix, async () =>
             {
-                if (connection == null)
-                    throw new ArgumentNullException(nameof(connection));
+                ArgumentNullException.ThrowIfNull(connection);
 
                 var sql = $@"
 DELETE {TableContants.DeviceTableName} 
@@ -133,57 +132,6 @@ WHERE Id = @Id
         #endregion
 
         #region Fetch Operations
-
-        public async Task<PaginationResponse<DeviceEntity>> FetchAllAsync(PaginationRequest paginationRequest, CancellationToken cancellationToken = default)
-        {
-            using var connection = await _databaseConnection.CreateConnectionAsync(cancellationToken);
-
-            var response = await InternalFetchByAsync(
-                id: null,
-                brand: null,
-                state: null,
-                paginationRequest: paginationRequest,
-                getTotalElementsFromDatabase: true,
-                connection: connection,
-                cancellationToken: cancellationToken
-            );
-
-            return response;
-        }
-
-        public async Task<PaginationResponse<DeviceEntity>> FetchAllByBrandAsync(string deviceBrand, PaginationRequest paginationRequest, CancellationToken cancellationToken = default)
-        {
-            using var connection = await _databaseConnection.CreateConnectionAsync(cancellationToken);
-
-            var response = await InternalFetchByAsync(
-                id: null,
-                brand: deviceBrand,
-                state: null,
-                paginationRequest: paginationRequest,
-                getTotalElementsFromDatabase: true,
-                connection: connection,
-                cancellationToken: cancellationToken
-            );
-
-            return response;
-        }
-
-        public async Task<PaginationResponse<DeviceEntity>> FetchAllByStateAsync(DeviceStateEnum deviceState, PaginationRequest paginationRequest, CancellationToken cancellationToken = default)
-        {
-            using var connection = await _databaseConnection.CreateConnectionAsync(cancellationToken);
-
-            var response = await InternalFetchByAsync(
-                id: null,
-                brand: null,
-                state: deviceState,
-                paginationRequest: paginationRequest,
-                getTotalElementsFromDatabase: true,
-                connection: connection,
-                cancellationToken: cancellationToken
-            );
-
-            return response;
-        }
 
         public async Task<DeviceEntity?> FetchByIdAsync(Guid deviceId, CancellationToken cancellationToken = default)
         {
@@ -218,6 +166,24 @@ WHERE Id = @Id
             );
 
             return response?.Content?.FirstOrDefault();
+        }
+
+        public async Task<PaginationResponse<DeviceEntity>> FetchAllAsync(string? brand, DeviceStateEnum? state,
+            PaginationRequest paginationRequest, CancellationToken cancellationToken = default)
+        {
+            using var connection = await _databaseConnection.CreateConnectionAsync(cancellationToken);
+
+            var response = await InternalFetchByAsync(
+                id: null,
+                brand: brand,
+                state: state,
+                paginationRequest: paginationRequest,
+                getTotalElementsFromDatabase: true,
+                connection: connection,
+                cancellationToken: cancellationToken
+            );
+
+            return response;
         }
 
         private async Task<PaginationResponse<DeviceEntity>> InternalFetchByAsync(

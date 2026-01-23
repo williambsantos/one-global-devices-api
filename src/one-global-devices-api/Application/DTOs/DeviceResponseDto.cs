@@ -10,7 +10,6 @@ namespace OneGlobalDevicesApi.Application.DTOs
         public string State { get; init; } = string.Empty;
         public DateTimeOffset CreationTime { get; init; }
 
-        public DeviceResponseDto() { }
         public DeviceResponseDto(DeviceEntity entity)
         {
             Id = entity.Id;

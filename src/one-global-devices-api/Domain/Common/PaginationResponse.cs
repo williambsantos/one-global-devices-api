@@ -8,7 +8,14 @@ namespace OneGlobalDevicesApi.Domain.Entities
 
         public PaginationResponse(int totalElements, PaginationRequest paginationRequest, IEnumerable<T> list)
         {
-            FillFrom(totalElements, paginationRequest, list);
+            Content = list;
+            Pageable = paginationRequest;
+            TotalElements = totalElements;
+            TotalPages = (int)Math.Ceiling((double)totalElements / paginationRequest.PageSize);
+            NumberOfElements = list.Count();
+            First = paginationRequest.PageNumber == 1;
+            Last = paginationRequest.PageNumber >= this.TotalPages;
+            Empty = !list.Any();
         }
 
         public IEnumerable<T> Content { get; set; } = [];
@@ -19,32 +26,29 @@ namespace OneGlobalDevicesApi.Domain.Entities
         public bool First { get; set; } = true;
         public bool Last { get; set; } = true;
         public bool Empty { get; set; } = true;
+    }
 
-        internal void ConvertContent<TEntity>(PaginationResponse<TEntity> entityData, Func<TEntity, T> fnConvertMethod)
+    public static class PaginationResponseExtensions
+    {
+        public static PaginationResponse<TDestination> ConvertContentTo<TSource, TDestination>(
+            this PaginationResponse<TSource> source,
+            Func<TSource, TDestination> fnConvertMethod)
         {
-            if (entityData == null)
-                return;
+            ArgumentNullException.ThrowIfNull(source);
 
-            this.Pageable = entityData.Pageable;
-            this.TotalElements = entityData.TotalElements;
-            this.TotalPages = entityData.TotalPages;
-            this.NumberOfElements = entityData.NumberOfElements;
-            this.First = entityData.First;
-            this.Last = entityData.Last;
-            this.Empty = entityData.Empty;
-            this.Content = entityData.Content.Select(fnConvertMethod);
-        }
+            var destination = new PaginationResponse<TDestination>
+            {
+                Pageable = source.Pageable,
+                TotalElements = source.TotalElements,
+                TotalPages = source.TotalPages,
+                NumberOfElements = source.NumberOfElements,
+                First = source.First,
+                Last = source.Last,
+                Empty = source.Empty,
+                Content = source.Content.Select(fnConvertMethod)
+            };
 
-        public void FillFrom(int totalElements, PaginationRequest paginationRequest, IEnumerable<T> list)
-        {
-            Content = list;
-            Pageable = paginationRequest;
-            TotalElements = totalElements;
-            TotalPages = (int)Math.Ceiling((double)totalElements / paginationRequest.PageSize);
-            NumberOfElements = list.Count();
-            First = paginationRequest.PageNumber == 1;
-            Last = paginationRequest.PageNumber >= this.TotalPages;
-            Empty = !list.Any();
+            return destination;
         }
     }
 }

@@ -24,8 +24,9 @@ namespace OneGlobalDevicesApi.Domain.Repositories
 
         Task<DeviceEntity?> FetchByIdAsync(Guid deviceId, CancellationToken cancellationToken = default);
 
-        Task<PaginationResponse<DeviceEntity>> FetchAllAsync(PaginationRequest paginationRequest, CancellationToken cancellationToken = default);
-        Task<PaginationResponse<DeviceEntity>> FetchAllByBrandAsync(string deviceBrand, PaginationRequest paginationRequest, CancellationToken cancellationToken = default);
-        Task<PaginationResponse<DeviceEntity>> FetchAllByStateAsync(DeviceStateEnum deviceState, PaginationRequest paginationRequest, CancellationToken cancellationToken = default);
+        Task<PaginationResponse<DeviceEntity>> FetchAllAsync(
+            string? brand, DeviceStateEnum? state,
+            PaginationRequest paginationRequest, CancellationToken cancellationToken = default
+        );
     }
 }
