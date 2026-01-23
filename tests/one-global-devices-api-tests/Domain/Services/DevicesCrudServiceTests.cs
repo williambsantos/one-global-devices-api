@@ -560,7 +560,7 @@ namespace OneGlobalDevicesApiTests.Domain.Services
 
             var deviceRepositoryMock = Substitute.For<IDeviceRepository>();
             deviceRepositoryMock
-                .FetchAllAsync(Arg.Any<PaginationRequest>(), cancellationToken)
+                .FetchAllAsync(null, null, Arg.Any<PaginationRequest>(), cancellationToken)
                 .Returns(paginationResponse);
 
             var databaseConnectionMock = Substitute.For<IDatabaseConnection>();
@@ -571,10 +571,10 @@ namespace OneGlobalDevicesApiTests.Domain.Services
             );
 
             // Act
-            var result = await devicesCrudService.FetchAllDevicesAsync(paginationRequest, cancellationToken);
+            var result = await devicesCrudService.FetchAllDevicesAsync(null, null, paginationRequest, cancellationToken);
 
             // Assert
-            await deviceRepositoryMock.Received(1).FetchAllAsync(Arg.Any<PaginationRequest>(), cancellationToken);
+            await deviceRepositoryMock.Received(1).FetchAllAsync(null, null, Arg.Any<PaginationRequest>(), cancellationToken);
 
             result.Should().NotBeNull();
             result.Content.Should().NotBeEmpty();
@@ -606,7 +606,7 @@ namespace OneGlobalDevicesApiTests.Domain.Services
 
             var deviceRepositoryMock = Substitute.For<IDeviceRepository>();
             deviceRepositoryMock
-                .FetchAllByBrandAsync(deviceBrand, Arg.Any<PaginationRequest>(), cancellationToken)
+                .FetchAllAsync(deviceBrand, null, Arg.Any<PaginationRequest>(), cancellationToken)
                 .Returns(paginationResponse);
 
             var databaseConnectionMock = Substitute.For<IDatabaseConnection>();
@@ -617,10 +617,10 @@ namespace OneGlobalDevicesApiTests.Domain.Services
             );
 
             // Act
-            var result = await devicesCrudService.FetchAllDevicesByBrandAsync(deviceBrand, paginationRequest, cancellationToken);
+            var result = await devicesCrudService.FetchAllDevicesAsync(deviceBrand, null, paginationRequest, cancellationToken);
 
             // Assert
-            await deviceRepositoryMock.Received(1).FetchAllByBrandAsync(deviceBrand, Arg.Any<PaginationRequest>(), cancellationToken);
+            await deviceRepositoryMock.Received(1).FetchAllAsync(deviceBrand, null, Arg.Any<PaginationRequest>(), cancellationToken);
 
             result.Should().NotBeNull();
             result.Content.Should().NotBeEmpty();
@@ -653,7 +653,7 @@ namespace OneGlobalDevicesApiTests.Domain.Services
 
             var deviceRepositoryMock = Substitute.For<IDeviceRepository>();
             deviceRepositoryMock
-                .FetchAllByStateAsync(deviceState, Arg.Any<PaginationRequest>(), cancellationToken)
+                .FetchAllAsync(null, deviceState, Arg.Any<PaginationRequest>(), cancellationToken)
                 .Returns(paginationResponse);
 
             var databaseConnectionMock = Substitute.For<IDatabaseConnection>();
@@ -664,10 +664,10 @@ namespace OneGlobalDevicesApiTests.Domain.Services
             );
 
             // Act
-            var result = await devicesCrudService.FetchAllDevicesByStateAsync(deviceState, paginationRequest, cancellationToken);
+            var result = await devicesCrudService.FetchAllDevicesAsync(null, deviceState, paginationRequest, cancellationToken);
 
             // Assert
-            await deviceRepositoryMock.Received(1).FetchAllByStateAsync(deviceState, Arg.Any<PaginationRequest>(), cancellationToken);
+            await deviceRepositoryMock.Received(1).FetchAllAsync(null, deviceState, Arg.Any<PaginationRequest>(), cancellationToken);
 
             result.Should().NotBeNull();
             result.Content.Should().NotBeEmpty();
