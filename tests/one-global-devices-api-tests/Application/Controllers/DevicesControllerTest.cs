@@ -13,6 +13,25 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
     {
         #region Common Asserts
 
+        private void AssertActionResultPaginatedDeviceResponseDto(IEnumerable<DeviceEntity> expectedList, ActionResult<PaginationResponse<DeviceResponseDto>> actionResponse)
+        {
+            actionResponse.Should().NotBeNull();
+
+            var okResult = actionResponse.Result.Should().BeOfType<OkObjectResult>().Subject;
+            okResult.Should().NotBeNull();
+
+            var actual = okResult.Value as PaginationResponse<DeviceResponseDto> ??
+                throw new InvalidOperationException("Expected a PaginationResponse<DeviceResponseDto>");
+
+            actual.Content.Should().NotBeNull();
+            actual.Content.Count().Should().Be(expectedList.Count());
+
+            for (int i = 0; i < expectedList.Count(); i++)
+            {
+                AssertDeviceEntity(expectedList.ElementAt(i), actual.Content.ElementAt(i));
+            }
+        }
+
         private void AssertActionResultDeviceResponseDto(IEnumerable<DeviceEntity> expectedList, ActionResult<IEnumerable<DeviceResponseDto>> actionResponse)
         {
             actionResponse.Should().NotBeNull();
@@ -706,6 +725,11 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             // Arrange
             var deviceId = Guid.NewGuid();
             var cancellationToken = new CancellationToken();
+            var paginationRequestDTO = new PaginationRequestDTO
+            {
+                Page = 1,
+                Size = 100,
+            };
 
             var deviceList = new List<DeviceEntity>
             {
@@ -717,25 +741,33 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
                 }
             };
 
+            var paginationRequest = new PaginationRequest { PageNumber = 1, PageSize = 100 };
+            var paginationResponse = new PaginationResponse<DeviceEntity>(
+                totalElements: deviceList.Count,
+                paginationRequest: paginationRequest,
+                list: deviceList
+            );
+
             var loggerMock = Substitute.For<ILogger<DevicesController>>();
 
             var deviceServiceMock = Substitute.For<IDevicesCrudService>();
-            deviceServiceMock.FetchAllDevicesAsync(Arg.Any<int>(), Arg.Any<int>(), cancellationToken).Returns(deviceList);
+            deviceServiceMock.FetchAllDevicesAsync(Arg.Any<PaginationRequest>(), cancellationToken).Returns(paginationResponse);
 
             var controller = new DevicesController(
                 loggerMock
             );
 
             // Act
-            ActionResult<IEnumerable<DeviceResponseDto>> actionResponse = await controller.FetchAllDevices(
+            ActionResult<PaginationResponse<DeviceResponseDto>> actionResponse = await controller.FetchAllDevices(
                 deviceServiceMock,
+                paginationRequestDTO,
                 cancellationToken
             );
 
             // Assert
-            AssertActionResultDeviceResponseDto(deviceList, actionResponse);
+            AssertActionResultPaginatedDeviceResponseDto(deviceList, actionResponse);
 
-            await deviceServiceMock.Received(1).FetchAllDevicesAsync(Arg.Any<int>(), Arg.Any<int>(), cancellationToken);
+            await deviceServiceMock.Received(1).FetchAllDevicesAsync(Arg.Any<PaginationRequest>(), cancellationToken);
         }
 
         [Fact]
@@ -744,6 +776,11 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             // Arrange
             var deviceId = Guid.NewGuid();
             var cancellationToken = new CancellationToken();
+            var paginationRequestDTO = new PaginationRequestDTO
+            {
+                Page = 1,
+                Size = 100,
+            };
 
             var deviceList = new List<DeviceEntity>
             {
@@ -760,22 +797,23 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             var loggerMock = Substitute.For<ILogger<DevicesController>>();
 
             var deviceServiceMock = Substitute.For<IDevicesCrudService>();
-            deviceServiceMock.FetchAllDevicesAsync(Arg.Any<int>(), Arg.Any<int>(), cancellationToken).Returns(Task.FromException<IEnumerable<DeviceEntity>>(exception));
+            deviceServiceMock.FetchAllDevicesAsync(Arg.Any<PaginationRequest>(), cancellationToken).Returns(Task.FromException<PaginationResponse<DeviceEntity>>(exception));
 
             var controller = new DevicesController(
                 loggerMock
             );
 
             // Act
-            ActionResult<IEnumerable<DeviceResponseDto>> actionResponse = await controller.FetchAllDevices(
+            ActionResult<PaginationResponse<DeviceResponseDto>> actionResponse = await controller.FetchAllDevices(
                 deviceServiceMock,
+                paginationRequestDTO,
                 cancellationToken
             );
 
             // Assert
             AssertBadRequestObjectResult(exception, actionResponse);
 
-            await deviceServiceMock.Received(1).FetchAllDevicesAsync(Arg.Any<int>(), Arg.Any<int>(), cancellationToken);
+            await deviceServiceMock.Received(1).FetchAllDevicesAsync(Arg.Any<PaginationRequest>(), cancellationToken);
         }
 
         #endregion
@@ -788,6 +826,11 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             // Arrange
             var deviceId = Guid.NewGuid();
             var cancellationToken = new CancellationToken();
+            var paginationRequestDTO = new PaginationRequestDTO
+            {
+                Page = 1,
+                Size = 100,
+            };
 
             var brand = "Apple";
 
@@ -801,26 +844,34 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
                 }
             };
 
+            var paginationRequest = new PaginationRequest { PageNumber = 1, PageSize = 100 };
+            var paginationResponse = new PaginationResponse<DeviceEntity>(
+                totalElements: deviceList.Count,
+                paginationRequest: paginationRequest,
+                list: deviceList
+            );
+
             var loggerMock = Substitute.For<ILogger<DevicesController>>();
 
             var deviceServiceMock = Substitute.For<IDevicesCrudService>();
-            deviceServiceMock.FetchAllDevicesByBrandAsync(brand, Arg.Any<int>(), Arg.Any<int>(), cancellationToken).Returns(deviceList);
+            deviceServiceMock.FetchAllDevicesByBrandAsync(brand, Arg.Any<PaginationRequest>(), cancellationToken).Returns(paginationResponse);
 
             var controller = new DevicesController(
                 loggerMock
             );
 
             // Act
-            ActionResult<IEnumerable<DeviceResponseDto>> actionResponse = await controller.FetchAllDevicesByBrandAsync(
+            ActionResult<PaginationResponse<DeviceResponseDto>> actionResponse = await controller.FetchAllDevicesByBrandAsync(
                 deviceServiceMock,
                 brand,
+                paginationRequestDTO,
                 cancellationToken
             );
 
             // Assert
-            AssertActionResultDeviceResponseDto(deviceList, actionResponse);
+            AssertActionResultPaginatedDeviceResponseDto(deviceList, actionResponse);
 
-            await deviceServiceMock.Received(1).FetchAllDevicesByBrandAsync(brand, Arg.Any<int>(), Arg.Any<int>(), cancellationToken);
+            await deviceServiceMock.Received(1).FetchAllDevicesByBrandAsync(brand, Arg.Any<PaginationRequest>(), cancellationToken);
         }
 
         [Fact]
@@ -829,6 +880,11 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             // Arrange
             var deviceId = Guid.NewGuid();
             var cancellationToken = new CancellationToken();
+            var paginationRequestDTO = new PaginationRequestDTO
+            {
+                Page = 1,
+                Size = 100,
+            };
 
             var brand = "Apple";
 
@@ -847,23 +903,24 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             var loggerMock = Substitute.For<ILogger<DevicesController>>();
 
             var deviceServiceMock = Substitute.For<IDevicesCrudService>();
-            deviceServiceMock.FetchAllDevicesByBrandAsync(brand, Arg.Any<int>(), Arg.Any<int>(), cancellationToken).Returns(Task.FromException<IEnumerable<DeviceEntity>>(exception));
+            deviceServiceMock.FetchAllDevicesByBrandAsync(brand, Arg.Any<PaginationRequest>(), cancellationToken).Returns(Task.FromException<PaginationResponse<DeviceEntity>>(exception));
 
             var controller = new DevicesController(
                 loggerMock
             );
 
             // Act
-            ActionResult<IEnumerable<DeviceResponseDto>> actionResponse = await controller.FetchAllDevicesByBrandAsync(
+            ActionResult<PaginationResponse<DeviceResponseDto>> actionResponse = await controller.FetchAllDevicesByBrandAsync(
                 deviceServiceMock,
                 brand,
+                paginationRequestDTO,
                 cancellationToken
             );
 
             // Assert
             AssertBadRequestObjectResult(exception, actionResponse);
 
-            await deviceServiceMock.Received(1).FetchAllDevicesByBrandAsync(brand, Arg.Any<int>(), Arg.Any<int>(), cancellationToken);
+            await deviceServiceMock.Received(1).FetchAllDevicesByBrandAsync(brand, Arg.Any<PaginationRequest>(), cancellationToken);
         }
 
         #endregion
@@ -876,6 +933,11 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             // Arrange
             var deviceId = Guid.NewGuid();
             var cancellationToken = new CancellationToken();
+            var paginationRequestDTO = new PaginationRequestDTO
+            {
+                Page = 1,
+                Size = 100,
+            };
 
             var state = DeviceStateEnum.Available;
 
@@ -889,26 +951,34 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
                 }
             };
 
+            var paginationRequest = new PaginationRequest { PageNumber = 1, PageSize = 100 };
+            var paginationResponse = new PaginationResponse<DeviceEntity>(
+                totalElements: deviceList.Count,
+                paginationRequest: paginationRequest,
+                list: deviceList
+            );
+
             var loggerMock = Substitute.For<ILogger<DevicesController>>();
 
             var deviceServiceMock = Substitute.For<IDevicesCrudService>();
-            deviceServiceMock.FetchAllDevicesByStateAsync(state, Arg.Any<int>(), Arg.Any<int>(), cancellationToken).Returns(deviceList);
+            deviceServiceMock.FetchAllDevicesByStateAsync(state, Arg.Any<PaginationRequest>(), cancellationToken).Returns(paginationResponse);
 
             var controller = new DevicesController(
                 loggerMock
             );
 
             // Act
-            ActionResult<IEnumerable<DeviceResponseDto>> actionResponse = await controller.FetchAllDevicesByStateAsync(
+            ActionResult<PaginationResponse<DeviceResponseDto>> actionResponse = await controller.FetchAllDevicesByStateAsync(
                 deviceServiceMock,
                 state,
+                paginationRequestDTO,
                 cancellationToken
             );
 
             // Assert
-            AssertActionResultDeviceResponseDto(deviceList, actionResponse);
+            AssertActionResultPaginatedDeviceResponseDto(deviceList, actionResponse);
 
-            await deviceServiceMock.Received(1).FetchAllDevicesByStateAsync(state, Arg.Any<int>(), Arg.Any<int>(), cancellationToken);
+            await deviceServiceMock.Received(1).FetchAllDevicesByStateAsync(state, Arg.Any<PaginationRequest>(), cancellationToken);
         }
 
         [Fact]
@@ -917,6 +987,11 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             // Arrange
             var deviceId = Guid.NewGuid();
             var cancellationToken = new CancellationToken();
+            var paginationRequestDTO = new PaginationRequestDTO
+            {
+                Page = 1,
+                Size = 100,
+            };
 
             var state = DeviceStateEnum.Available;
 
@@ -935,23 +1010,24 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             var loggerMock = Substitute.For<ILogger<DevicesController>>();
 
             var deviceServiceMock = Substitute.For<IDevicesCrudService>();
-            deviceServiceMock.FetchAllDevicesByStateAsync(state, Arg.Any<int>(), Arg.Any<int>(), cancellationToken).Returns(Task.FromException<IEnumerable<DeviceEntity>>(exception));
+            deviceServiceMock.FetchAllDevicesByStateAsync(state, Arg.Any<PaginationRequest>(), cancellationToken).Returns(Task.FromException<PaginationResponse<DeviceEntity>>(exception));
 
             var controller = new DevicesController(
                 loggerMock
             );
 
             // Act
-            ActionResult<IEnumerable<DeviceResponseDto>> actionResponse = await controller.FetchAllDevicesByStateAsync(
+            ActionResult<PaginationResponse<DeviceResponseDto>> actionResponse = await controller.FetchAllDevicesByStateAsync(
                 deviceServiceMock,
                 state,
+                paginationRequestDTO,
                 cancellationToken
             );
 
             // Assert
             AssertBadRequestObjectResult(exception, actionResponse);
 
-            await deviceServiceMock.Received(1).FetchAllDevicesByStateAsync(state, Arg.Any<int>(), Arg.Any<int>(), cancellationToken);
+            await deviceServiceMock.Received(1).FetchAllDevicesByStateAsync(state, Arg.Any<PaginationRequest>(), cancellationToken);
         }
 
         #endregion

@@ -1,11 +1,11 @@
-using NSubstitute;
+using System.Data.Common;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
+using NSubstitute;
+using NSubstitute.DbConnection;
 using OneGlobalDevicesApi.Domain.Entities;
 using OneGlobalDevicesApi.Domain.Repositories;
 using OneGlobalDevicesApi.Infra.SQLServer.Repositories;
-using System.Data.Common;
-using NSubstitute.DbConnection;
 
 namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
 {
@@ -312,8 +312,14 @@ namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
             var databaseConnectionMock = Substitute.For<IDatabaseConnection>();
             var dbConnectionMock = Substitute.For<DbConnection>().SetupCommands();
 
+            // Setup COUNT query (ExecuteScalarAsync) - returns single anonymous object with Count field
             dbConnectionMock
-                .SetupQuery(query => query.Contains("SELECT"))
+                .SetupQuery(query => query.Contains("COUNT"))
+                .Returns(new { Count = expectedDevices.Count });
+
+            // Setup SELECT query (QueryAsync)
+            dbConnectionMock
+                .SetupQuery(query => query.Contains("SELECT") && query.Contains("OFFSET"))
                 .Returns(
                     expectedDevices.First(),
                     expectedDevices.Last()
@@ -325,12 +331,14 @@ namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
 
             var repository = new DeviceSqlServerRepository(loggerMock, databaseConnectionMock);
 
+            var paginationRequest = new PaginationRequest { PageNumber = 1, PageSize = 100 };
+
             // Act
-            var result = await repository.FetchAllAsync();
+            var result = await repository.FetchAllAsync(paginationRequest);
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().HaveCount(2);
+            result.Content.Should().HaveCount(2);
         }
 
         [Fact]
@@ -341,8 +349,14 @@ namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
             var databaseConnectionMock = Substitute.For<IDatabaseConnection>();
             var dbConnectionMock = Substitute.For<DbConnection>().SetupCommands();
 
+            // Setup COUNT query (ExecuteScalarAsync) - returns single anonymous object with Count field
             dbConnectionMock
-                .SetupQuery(query => query.Contains("SELECT"))
+                .SetupQuery(query => query.Contains("COUNT"))
+                .Returns(new { Count = 0 });
+
+            // Setup SELECT query (QueryAsync)
+            dbConnectionMock
+                .SetupQuery(query => query.Contains("SELECT") && query.Contains("OFFSET"))
                 .Returns(Enumerable.Empty<DeviceEntity>());
 
             databaseConnectionMock
@@ -351,12 +365,14 @@ namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
 
             var repository = new DeviceSqlServerRepository(loggerMock, databaseConnectionMock);
 
+            var paginationRequest = new PaginationRequest { PageNumber = 1, PageSize = 100 };
+
             // Act
-            var result = await repository.FetchAllAsync();
+            var result = await repository.FetchAllAsync(paginationRequest);
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeEmpty();
+            result.Content.Should().BeEmpty();
         }
 
         #endregion
@@ -383,8 +399,14 @@ namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
             var databaseConnectionMock = Substitute.For<IDatabaseConnection>();
             var dbConnectionMock = Substitute.For<DbConnection>().SetupCommands();
 
+            // Setup COUNT query (ExecuteScalarAsync) - returns int wrapped for scalar extraction
             dbConnectionMock
-                .SetupQuery(query => query.Contains("SELECT"))
+                .SetupQuery(query => query.Contains("COUNT"))
+                .Returns(new { Count = expectedDevices.Count }); ;
+
+            // Setup SELECT query (QueryAsync)
+            dbConnectionMock
+                .SetupQuery(query => query.Contains("SELECT") && query.Contains("OFFSET"))
                 .Returns(
                     expectedDevices.First()
                 );
@@ -395,13 +417,15 @@ namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
 
             var repository = new DeviceSqlServerRepository(loggerMock, databaseConnectionMock);
 
+            var paginationRequest = new PaginationRequest { PageNumber = 1, PageSize = 100 };
+
             // Act
-            var result = await repository.FetchAllByBrandAsync(brand);
+            var result = await repository.FetchAllByBrandAsync(brand, paginationRequest);
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().ContainSingle();
-            result.Should().OnlyContain(d => d.Brand == brand);
+            result.Content.Should().ContainSingle();
+            result.Content.Should().OnlyContain(d => d.Brand == brand);
         }
 
         [Fact]
@@ -413,8 +437,14 @@ namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
             var databaseConnectionMock = Substitute.For<IDatabaseConnection>();
             var dbConnectionMock = Substitute.For<DbConnection>().SetupCommands();
 
+            // Setup COUNT query (ExecuteScalarAsync) - returns int wrapped for scalar extraction
             dbConnectionMock
-                .SetupQuery(query => query.Contains("SELECT"))
+                .SetupQuery(query => query.Contains("COUNT"))
+                .Returns(new { Count = 0 }); ;
+
+            // Setup SELECT query (QueryAsync)
+            dbConnectionMock
+                .SetupQuery(query => query.Contains("SELECT") && query.Contains("OFFSET"))
                 .Returns(Enumerable.Empty<DeviceEntity>());
 
             databaseConnectionMock
@@ -423,11 +453,13 @@ namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
 
             var repository = new DeviceSqlServerRepository(loggerMock, databaseConnectionMock);
 
+            var paginationRequest = new PaginationRequest { PageNumber = 1, PageSize = 100 };
+
             // Act
-            var result = await repository.FetchAllByBrandAsync(brand);
+            var result = await repository.FetchAllByBrandAsync(brand, paginationRequest);
 
             // Assert
-            result.Should().BeEmpty();
+            result.Content.Should().BeEmpty();
         }
 
         #endregion
@@ -454,8 +486,14 @@ namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
             var databaseConnectionMock = Substitute.For<IDatabaseConnection>();
             var dbConnectionMock = Substitute.For<DbConnection>().SetupCommands();
 
+            // Setup COUNT query (ExecuteScalarAsync) - returns int wrapped for scalar extraction
             dbConnectionMock
-                .SetupQuery(query => query.Contains("SELECT"))
+                .SetupQuery(query => query.Contains("COUNT"))
+                .Returns(new { Count = expectedDevices.Count });
+
+            // Setup SELECT query (QueryAsync)
+            dbConnectionMock
+                .SetupQuery(query => query.Contains("SELECT") && query.Contains("OFFSET"))
                 .Returns(
                     expectedDevices.First()
                 );
@@ -466,13 +504,15 @@ namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
 
             var repository = new DeviceSqlServerRepository(loggerMock, databaseConnectionMock);
 
+            var paginationRequest = new PaginationRequest { PageNumber = 1, PageSize = 100 };
+
             // Act
-            var result = await repository.FetchAllByStateAsync(state);
+            var result = await repository.FetchAllByStateAsync(state, paginationRequest);
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().ContainSingle();
-            result.Should().OnlyContain(d => d.State == state);
+            result.Content.Should().ContainSingle();
+            result.Content.Should().OnlyContain(d => d.State == state);
         }
 
         [Theory]
@@ -486,8 +526,14 @@ namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
             var databaseConnectionMock = Substitute.For<IDatabaseConnection>();
             var dbConnectionMock = Substitute.For<DbConnection>().SetupCommands();
 
+            // Setup COUNT query (ExecuteScalarAsync) - returns int wrapped for scalar extraction
             dbConnectionMock
-                .SetupQuery(query => query.Contains("SELECT"))
+                .SetupQuery(query => query.Contains("COUNT"))
+                .Returns(new { Count = 0 });
+
+            // Setup SELECT query (QueryAsync)
+            dbConnectionMock
+                .SetupQuery(query => query.Contains("SELECT") && query.Contains("OFFSET"))
                 .Returns(Enumerable.Empty<DeviceEntity>());
 
             databaseConnectionMock
@@ -496,11 +542,13 @@ namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
 
             var repository = new DeviceSqlServerRepository(loggerMock, databaseConnectionMock);
 
+            var paginationRequest = new PaginationRequest { PageNumber = 1, PageSize = 100 };
+
             // Act
-            var result = await repository.FetchAllByStateAsync(state);
+            var result = await repository.FetchAllByStateAsync(state, paginationRequest);
 
             // Assert
-            result.Should().BeEmpty();
+            result.Content.Should().BeEmpty();
         }
 
         #endregion

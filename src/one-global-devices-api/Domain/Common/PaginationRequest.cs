@@ -2,8 +2,6 @@ namespace OneGlobalDevicesApi.Domain.Entities
 {
     public record PaginationRequest
     {
-        public static PaginationRequest Default = new PaginationRequest();
-
         public const int DefaultOffset = 0;
         public const int DefaultPageSize = 100;
 

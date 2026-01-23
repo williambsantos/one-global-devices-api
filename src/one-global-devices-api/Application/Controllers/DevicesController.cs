@@ -249,7 +249,7 @@ namespace OneGlobalDevicesApi.Application.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<DeviceResponseDto>>> FetchAllDevices(
+        public async Task<ActionResult<PaginationResponse<DeviceResponseDto>>> FetchAllDevices(
             [FromServices] IDevicesCrudService service,
             [FromQuery] PaginationRequestDTO? pagination,
             CancellationToken cancellationToken = default
@@ -283,7 +283,7 @@ namespace OneGlobalDevicesApi.Application.Controllers
         }
 
         [HttpGet("byBrand")]
-        public async Task<ActionResult<IEnumerable<DeviceResponseDto>>> FetchAllDevicesByBrandAsync(
+        public async Task<ActionResult<PaginationResponse<DeviceResponseDto>>> FetchAllDevicesByBrandAsync(
             [FromServices] IDevicesCrudService service,
             [FromQuery] string? brand,
             [FromQuery] PaginationRequestDTO? pagination,
@@ -321,7 +321,7 @@ namespace OneGlobalDevicesApi.Application.Controllers
         }
 
         [HttpGet("byState")]
-        public async Task<ActionResult<IEnumerable<DeviceResponseDto>>> FetchAllDevicesByStateAsync(
+        public async Task<ActionResult<PaginationResponse<DeviceResponseDto>>> FetchAllDevicesByStateAsync(
             [FromServices] IDevicesCrudService service,
             [FromQuery] DeviceStateEnum? state,
             [FromQuery] PaginationRequestDTO? pagination,
