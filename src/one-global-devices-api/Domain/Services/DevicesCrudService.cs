@@ -1,10 +1,6 @@
-﻿using System.Data;
-using System.Data.Common;
-using System.Threading;
-using OneGlobalDevicesApi.Domain.Entities;
+﻿using OneGlobalDevicesApi.Domain.Entities;
 using OneGlobalDevicesApi.Domain.Exceptions;
 using OneGlobalDevicesApi.Domain.Repositories;
-using OneGlobalDevicesApi.Infra.SQLServer.Connections;
 
 namespace OneGlobalDevicesApi.Domain.Services
 {
@@ -27,11 +23,11 @@ namespace OneGlobalDevicesApi.Domain.Services
 
         Task<DeviceEntity?> FetchSingleDeviceAsync(Guid id, CancellationToken cancellationToken);
 
-        Task<IEnumerable<DeviceEntity>> FetchAllDevicesAsync(CancellationToken cancellationToken);
+        Task<PaginationResponse<DeviceEntity>> FetchAllDevicesAsync(PaginationRequest paginationRequest, CancellationToken cancellationToken = default);
 
-        Task<IEnumerable<DeviceEntity>> FetchAllDevicesByBrandAsync(string deviceBrand, CancellationToken cancellationToken);
+        Task<PaginationResponse<DeviceEntity>> FetchAllDevicesByBrandAsync(string deviceBrand, PaginationRequest paginationRequest, CancellationToken cancellationToken = default);
 
-        Task<IEnumerable<DeviceEntity>> FetchAllDevicesByStateAsync(DeviceStateEnum deviceState, CancellationToken cancellationToken);
+        Task<PaginationResponse<DeviceEntity>> FetchAllDevicesByStateAsync(DeviceStateEnum deviceState, PaginationRequest paginationRequest, CancellationToken cancellationToken = default);
     }
 
     public class DevicesCrudService : IDevicesCrudService
@@ -251,14 +247,14 @@ namespace OneGlobalDevicesApi.Domain.Services
         public async Task<DeviceEntity?> FetchSingleDeviceAsync(Guid id, CancellationToken cancellationToken) =>
             await _deviceRepository.FetchByIdAsync(id, cancellationToken);
 
-        public async Task<IEnumerable<DeviceEntity>> FetchAllDevicesAsync(CancellationToken cancellationToken) =>
-            await _deviceRepository.FetchAllAsync(cancellationToken);
+        public async Task<PaginationResponse<DeviceEntity>> FetchAllDevicesAsync(PaginationRequest paginationRequest, CancellationToken cancellationToken = default) =>
+            await _deviceRepository.FetchAllAsync(paginationRequest, cancellationToken);
 
-        public async Task<IEnumerable<DeviceEntity>> FetchAllDevicesByBrandAsync(string deviceBrand, CancellationToken cancellationToken) =>
-            await _deviceRepository.FetchAllByBrandAsync(deviceBrand, cancellationToken);
+        public async Task<PaginationResponse<DeviceEntity>> FetchAllDevicesByBrandAsync(string deviceBrand, PaginationRequest paginationRequest, CancellationToken cancellationToken = default) =>
+            await _deviceRepository.FetchAllByBrandAsync(deviceBrand, paginationRequest, cancellationToken);
 
-        public async Task<IEnumerable<DeviceEntity>> FetchAllDevicesByStateAsync(DeviceStateEnum deviceState, CancellationToken cancellationToken) =>
-            await _deviceRepository.FetchAllByStateAsync(deviceState, cancellationToken);
+        public async Task<PaginationResponse<DeviceEntity>> FetchAllDevicesByStateAsync(DeviceStateEnum deviceState, PaginationRequest paginationRequest, CancellationToken cancellationToken = default) =>
+            await _deviceRepository.FetchAllByStateAsync(deviceState, paginationRequest, cancellationToken);
 
         #endregion
     }

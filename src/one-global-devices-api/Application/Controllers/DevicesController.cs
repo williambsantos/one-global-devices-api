@@ -1,4 +1,3 @@
-using Azure.Core;
 using Microsoft.AspNetCore.Mvc;
 using OneGlobalDevicesApi.Application.DTOs;
 using OneGlobalDevicesApi.Domain.Entities;
@@ -40,9 +39,9 @@ namespace OneGlobalDevicesApi.Application.Controllers
                 _logger.LogError(ex, "Error to create new device. " +
                     "name: {name}. " +
                     "brand: {brand}. " +
-                    "error: {error}", 
-                    request?.Name, 
-                    request?.Brand, 
+                    "error: {error}",
+                    request?.Name,
+                    request?.Brand,
                     ex.Message
                 );
 
@@ -60,7 +59,7 @@ namespace OneGlobalDevicesApi.Application.Controllers
             try
             {
                 DeviceEntity deviceCreated = await service.UpdateDeviceAsync(
-                    id: id, 
+                    id: id,
                     newName: request.NewName,
                     newBrand: request.NewBrand,
                     newState: request.NewState,
@@ -71,7 +70,7 @@ namespace OneGlobalDevicesApi.Application.Controllers
 
                 return Ok(response);
             }
-            catch(KeyNotFoundException ex)
+            catch (KeyNotFoundException ex)
             {
                 _logger.LogError(ex, "Error to fully update a device. NotFound. " +
                     "id: {id}. " +
@@ -176,7 +175,7 @@ namespace OneGlobalDevicesApi.Application.Controllers
                 await service.DeleteSingleDeviceAsync(
                     id: id,
                     cancellationToken: cancellationToken
-                ); 
+                );
 
                 return NoContent();
             }
@@ -213,7 +212,7 @@ namespace OneGlobalDevicesApi.Application.Controllers
             try
             {
                 DeviceEntity? device = await service.FetchSingleDeviceAsync(
-                    id: id, 
+                    id: id,
                     cancellationToken: cancellationToken
                 );
                 if (device == null)
@@ -240,8 +239,8 @@ namespace OneGlobalDevicesApi.Application.Controllers
             {
                 _logger.LogError(ex, "Error to fetch device by Id. " +
                     "id: {id}. " +
-                    "Error: {error}", 
-                    id, 
+                    "Error: {error}",
+                    id,
                     ex.Message
                 );
 
@@ -252,17 +251,24 @@ namespace OneGlobalDevicesApi.Application.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DeviceResponseDto>>> FetchAllDevices(
             [FromServices] IDevicesCrudService service,
-            CancellationToken cancellationToken
+            [FromQuery] PaginationRequestDTO? pagination,
+            CancellationToken cancellationToken = default
             )
         {
             try
             {
-                IEnumerable<DeviceEntity> devices = await service.FetchAllDevicesAsync(
-                    cancellationToken
+                var paginationRequest = pagination?.ToDomainEntity() ?? new PaginationRequest();
+
+                PaginationResponse<DeviceEntity> devices = await service.FetchAllDevicesAsync(
+                    paginationRequest,
+                    cancellationToken: cancellationToken
                 );
 
-                List<DeviceResponseDto> response = devices?.Select(d => new DeviceResponseDto(d))?.ToList() ?? [];
+                var response = new PaginationResponse<DeviceResponseDto>();
+                if (devices == null || !devices.Content.Any())
+                    return Ok(response);
 
+                response.ConvertContent(devices, fnConvertMethod: d => new DeviceResponseDto(d));
                 return Ok(response);
             }
             catch (Exception ex)
@@ -280,24 +286,33 @@ namespace OneGlobalDevicesApi.Application.Controllers
         public async Task<ActionResult<IEnumerable<DeviceResponseDto>>> FetchAllDevicesByBrandAsync(
             [FromServices] IDevicesCrudService service,
             [FromQuery] string? brand,
-            CancellationToken cancellationToken
+            [FromQuery] PaginationRequestDTO? pagination,
+            CancellationToken cancellationToken = default
             )
         {
             try
             {
-                IEnumerable<DeviceEntity> devices = await service.FetchAllDevicesByBrandAsync(
+                var paginationRequest = pagination?.ToDomainEntity() ?? new PaginationRequest();
+
+                PaginationResponse<DeviceEntity> devices = await service.FetchAllDevicesByBrandAsync(
                     deviceBrand: brand ?? string.Empty,
+                    paginationRequest,
                     cancellationToken: cancellationToken
                 );
 
-                List<DeviceResponseDto> response = devices?.Select(d => new DeviceResponseDto(d))?.ToList() ?? [];
+                var response = new PaginationResponse<DeviceResponseDto>();
+                if (devices == null || !devices.Content.Any())
+                    return Ok(response);
 
+                response.ConvertContent(devices, fnConvertMethod: d => new DeviceResponseDto(d));
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error to fetch all devices by brandh. " +
+                _logger.LogError(ex, "Error to fetch devices by brand. " +
+                    "brand: {brand}. " +
                     "Error: {error}",
+                    brand,
                     ex.Message
                 );
 
@@ -309,24 +324,33 @@ namespace OneGlobalDevicesApi.Application.Controllers
         public async Task<ActionResult<IEnumerable<DeviceResponseDto>>> FetchAllDevicesByStateAsync(
             [FromServices] IDevicesCrudService service,
             [FromQuery] DeviceStateEnum? state,
-            CancellationToken cancellationToken
+            [FromQuery] PaginationRequestDTO? pagination,
+            CancellationToken cancellationToken = default
             )
         {
             try
             {
-                IEnumerable<DeviceEntity> devices = await service.FetchAllDevicesByStateAsync(
+                var paginationRequest = pagination?.ToDomainEntity() ?? new PaginationRequest();
+
+                PaginationResponse<DeviceEntity> devices = await service.FetchAllDevicesByStateAsync(
                     deviceState: state ?? default,
+                    paginationRequest,
                     cancellationToken: cancellationToken
                 );
 
-                List<DeviceResponseDto> response = devices?.Select(d => new DeviceResponseDto(d))?.ToList() ?? [];
+                var response = new PaginationResponse<DeviceResponseDto>();
+                if (devices == null || !devices.Content.Any())
+                    return Ok(response);
 
+                response.ConvertContent(devices, fnConvertMethod: d => new DeviceResponseDto(d));
                 return Ok(response);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error to fetch all devices by state. " +
+                    "state: {state}. " +
                     "Error: {error}",
+                    state,
                     ex.Message
                 );
 

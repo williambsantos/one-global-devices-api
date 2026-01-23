@@ -1,9 +1,9 @@
-﻿using Dapper;
+﻿using System.Data;
+using System.Data.Common;
+using Dapper;
 using OneGlobalDevicesApi.Domain.Entities;
 using OneGlobalDevicesApi.Domain.Repositories;
 using OneGlobalDevicesApi.Infra.SQLServer.Constants;
-using System.Data;
-using System.Data.Common;
 using static Dapper.SqlMapper;
 
 namespace OneGlobalDevicesApi.Infra.SQLServer.Repositories
@@ -134,86 +134,98 @@ WHERE Id = @Id
 
         #region Fetch Operations
 
-        public async Task<IEnumerable<DeviceEntity>> FetchAllAsync(CancellationToken cancellationToken = default)
+        public async Task<PaginationResponse<DeviceEntity>> FetchAllAsync(PaginationRequest paginationRequest, CancellationToken cancellationToken = default)
         {
             using var connection = await _databaseConnection.CreateConnectionAsync(cancellationToken);
 
-            var list = await InternalFetchByAsync(
+            var response = await InternalFetchByAsync(
                 id: null,
                 brand: null,
                 state: null,
+                paginationRequest: paginationRequest,
+                getTotalElementsFromDatabase: true,
                 connection: connection,
                 cancellationToken: cancellationToken
             );
 
-            return list ?? [];
+            return response;
         }
 
-        public async Task<IEnumerable<DeviceEntity>> FetchAllByBrandAsync(string deviceBrand, CancellationToken cancellationToken = default)
+        public async Task<PaginationResponse<DeviceEntity>> FetchAllByBrandAsync(string deviceBrand, PaginationRequest paginationRequest, CancellationToken cancellationToken = default)
         {
             using var connection = await _databaseConnection.CreateConnectionAsync(cancellationToken);
 
-            var list = await InternalFetchByAsync(
+            var response = await InternalFetchByAsync(
                 id: null,
                 brand: deviceBrand,
                 state: null,
+                paginationRequest: paginationRequest,
+                getTotalElementsFromDatabase: true,
                 connection: connection,
                 cancellationToken: cancellationToken
             );
 
-            return list ?? [];
+            return response;
         }
 
-        public async Task<IEnumerable<DeviceEntity>> FetchAllByStateAsync(DeviceStateEnum deviceState, CancellationToken cancellationToken = default)
+        public async Task<PaginationResponse<DeviceEntity>> FetchAllByStateAsync(DeviceStateEnum deviceState, PaginationRequest paginationRequest, CancellationToken cancellationToken = default)
         {
             using var connection = await _databaseConnection.CreateConnectionAsync(cancellationToken);
 
-            var list = await InternalFetchByAsync(
+            var response = await InternalFetchByAsync(
                 id: null,
                 brand: null,
                 state: deviceState,
+                paginationRequest: paginationRequest,
+                getTotalElementsFromDatabase: true,
                 connection: connection,
                 cancellationToken: cancellationToken
             );
 
-            return list ?? [];
+            return response;
         }
 
         public async Task<DeviceEntity?> FetchByIdAsync(Guid deviceId, CancellationToken cancellationToken = default)
         {
             using var connection = await _databaseConnection.CreateConnectionAsync(cancellationToken);
 
-            var list = await InternalFetchByAsync(
+            var response = await InternalFetchByAsync(
                 id: deviceId,
                 brand: null,
                 state: null,
+                paginationRequest: new PaginationRequest { PageNumber = 1, PageSize = 1 },
+                getTotalElementsFromDatabase: false,
                 connection: connection,
                 cancellationToken: cancellationToken
             );
 
-            return list?.FirstOrDefault();
+            return response?.Content?.FirstOrDefault();
         }
 
         public async Task<DeviceEntity?> FetchByIdAsync(Guid deviceId,
             DbConnection connection, DbTransaction transaction,
             CancellationToken cancellationToken = default)
         {
-            var list = await InternalFetchByAsync(
+            var response = await InternalFetchByAsync(
                 id: deviceId,
                 brand: null,
                 state: null,
+                paginationRequest: new PaginationRequest { PageNumber = 1, PageSize = 1 },
+                getTotalElementsFromDatabase: false,
                 connection: connection,
                 transaction: transaction,
                 cancellationToken: cancellationToken
             );
 
-            return list?.FirstOrDefault();
+            return response?.Content?.FirstOrDefault();
         }
 
-        private async Task<IEnumerable<DeviceEntity>> InternalFetchByAsync(
+        private async Task<PaginationResponse<DeviceEntity>> InternalFetchByAsync(
             Guid? id,
             string? brand,
             DeviceStateEnum? state,
+            PaginationRequest paginationRequest,
+            bool getTotalElementsFromDatabase,
             DbConnection connection,
             DbTransaction? transaction = default,
             CancellationToken cancellationToken = default)
@@ -232,13 +244,20 @@ WHERE 1 = 1
 AND (@Id IS NULL OR Id = @Id)
 AND (@Brand IS NULL OR Brand = @Brand)
 AND (@State IS NULL OR State = @State)
-ORDER BY [CreationTime] ASC;";
+ORDER BY [CreationTime] ASC
+OFFSET @Offset ROWS
+FETCH NEXT @Limit ROWS ONLY;";
+
+            int offset = paginationRequest.GetOffset();
+            int limit = paginationRequest.GetLimit();
 
             var parameters = new
             {
                 Id = id,
                 Brand = brand,
-                State = state?.ToString()
+                State = state?.ToString(),
+                Offset = offset,
+                Limit = limit
             };
 
             IEnumerable<DeviceEntity> list = await connection.QueryAsync<DeviceEntity>(new CommandDefinition(
@@ -248,11 +267,44 @@ ORDER BY [CreationTime] ASC;";
                 commandType: CommandType.Text,
                 cancellationToken: cancellationToken,
                 transaction: transaction
+            )) ?? [];
+
+            int totalElements = 0;
+            if (!getTotalElementsFromDatabase)
+            {
+                totalElements = list.Count();
+                return new PaginationResponse<DeviceEntity>(totalElements, paginationRequest, list);
+            }
+
+            var totalElementsSql = $@"
+SELECT
+    COUNT(1)
+FROM {TableContants.DeviceTableName}
+WHERE 1 = 1
+AND (@Id IS NULL OR Id = @Id)
+AND (@Brand IS NULL OR Brand = @Brand)
+AND (@State IS NULL OR State = @State)
+";
+            var totalParameters = new
+            {
+                Id = parameters.Id,
+                Brand = parameters.Brand,
+                State = parameters.State
+            };
+
+            totalElements = await connection.ExecuteScalarAsync<int>(new CommandDefinition(
+                commandText: totalElementsSql,
+                parameters: totalParameters,
+                commandTimeout: 30,
+                commandType: CommandType.Text,
+                cancellationToken: cancellationToken,
+                transaction: transaction
             ));
 
-            return list ?? [];
+            return new PaginationResponse<DeviceEntity>(totalElements, paginationRequest, list);
         }
 
         #endregion
+
     }
 }

@@ -720,7 +720,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             var loggerMock = Substitute.For<ILogger<DevicesController>>();
 
             var deviceServiceMock = Substitute.For<IDevicesCrudService>();
-            deviceServiceMock.FetchAllDevicesAsync(cancellationToken).Returns(deviceList);
+            deviceServiceMock.FetchAllDevicesAsync(Arg.Any<int>(), Arg.Any<int>(), cancellationToken).Returns(deviceList);
 
             var controller = new DevicesController(
                 loggerMock
@@ -735,7 +735,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             // Assert
             AssertActionResultDeviceResponseDto(deviceList, actionResponse);
 
-            await deviceServiceMock.Received(1).FetchAllDevicesAsync(cancellationToken);
+            await deviceServiceMock.Received(1).FetchAllDevicesAsync(Arg.Any<int>(), Arg.Any<int>(), cancellationToken);
         }
 
         [Fact]
@@ -760,7 +760,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             var loggerMock = Substitute.For<ILogger<DevicesController>>();
 
             var deviceServiceMock = Substitute.For<IDevicesCrudService>();
-            deviceServiceMock.FetchAllDevicesAsync(cancellationToken).Returns(Task.FromException<IEnumerable<DeviceEntity>>(exception));
+            deviceServiceMock.FetchAllDevicesAsync(Arg.Any<int>(), Arg.Any<int>(), cancellationToken).Returns(Task.FromException<IEnumerable<DeviceEntity>>(exception));
 
             var controller = new DevicesController(
                 loggerMock
@@ -775,7 +775,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             // Assert
             AssertBadRequestObjectResult(exception, actionResponse);
 
-            await deviceServiceMock.Received(1).FetchAllDevicesAsync(cancellationToken);
+            await deviceServiceMock.Received(1).FetchAllDevicesAsync(Arg.Any<int>(), Arg.Any<int>(), cancellationToken);
         }
 
         #endregion
@@ -804,7 +804,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             var loggerMock = Substitute.For<ILogger<DevicesController>>();
 
             var deviceServiceMock = Substitute.For<IDevicesCrudService>();
-            deviceServiceMock.FetchAllDevicesByBrandAsync(brand, cancellationToken).Returns(deviceList);
+            deviceServiceMock.FetchAllDevicesByBrandAsync(brand, Arg.Any<int>(), Arg.Any<int>(), cancellationToken).Returns(deviceList);
 
             var controller = new DevicesController(
                 loggerMock
@@ -820,7 +820,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             // Assert
             AssertActionResultDeviceResponseDto(deviceList, actionResponse);
 
-            await deviceServiceMock.Received(1).FetchAllDevicesByBrandAsync(brand, cancellationToken);
+            await deviceServiceMock.Received(1).FetchAllDevicesByBrandAsync(brand, Arg.Any<int>(), Arg.Any<int>(), cancellationToken);
         }
 
         [Fact]
@@ -847,7 +847,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             var loggerMock = Substitute.For<ILogger<DevicesController>>();
 
             var deviceServiceMock = Substitute.For<IDevicesCrudService>();
-            deviceServiceMock.FetchAllDevicesByBrandAsync(brand, cancellationToken).Returns(Task.FromException<IEnumerable<DeviceEntity>>(exception));
+            deviceServiceMock.FetchAllDevicesByBrandAsync(brand, Arg.Any<int>(), Arg.Any<int>(), cancellationToken).Returns(Task.FromException<IEnumerable<DeviceEntity>>(exception));
 
             var controller = new DevicesController(
                 loggerMock
@@ -863,7 +863,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             // Assert
             AssertBadRequestObjectResult(exception, actionResponse);
 
-            await deviceServiceMock.Received(1).FetchAllDevicesByBrandAsync(brand, cancellationToken);
+            await deviceServiceMock.Received(1).FetchAllDevicesByBrandAsync(brand, Arg.Any<int>(), Arg.Any<int>(), cancellationToken);
         }
 
         #endregion
@@ -892,7 +892,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             var loggerMock = Substitute.For<ILogger<DevicesController>>();
 
             var deviceServiceMock = Substitute.For<IDevicesCrudService>();
-            deviceServiceMock.FetchAllDevicesByStateAsync(state, cancellationToken).Returns(deviceList);
+            deviceServiceMock.FetchAllDevicesByStateAsync(state, Arg.Any<int>(), Arg.Any<int>(), cancellationToken).Returns(deviceList);
 
             var controller = new DevicesController(
                 loggerMock
@@ -908,7 +908,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             // Assert
             AssertActionResultDeviceResponseDto(deviceList, actionResponse);
 
-            await deviceServiceMock.Received(1).FetchAllDevicesByStateAsync(state, cancellationToken);
+            await deviceServiceMock.Received(1).FetchAllDevicesByStateAsync(state, Arg.Any<int>(), Arg.Any<int>(), cancellationToken);
         }
 
         [Fact]
@@ -935,7 +935,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             var loggerMock = Substitute.For<ILogger<DevicesController>>();
 
             var deviceServiceMock = Substitute.For<IDevicesCrudService>();
-            deviceServiceMock.FetchAllDevicesByStateAsync(state, cancellationToken).Returns(Task.FromException<IEnumerable<DeviceEntity>>(exception));
+            deviceServiceMock.FetchAllDevicesByStateAsync(state, Arg.Any<int>(), Arg.Any<int>(), cancellationToken).Returns(Task.FromException<IEnumerable<DeviceEntity>>(exception));
 
             var controller = new DevicesController(
                 loggerMock
@@ -951,7 +951,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             // Assert
             AssertBadRequestObjectResult(exception, actionResponse);
 
-            await deviceServiceMock.Received(1).FetchAllDevicesByStateAsync(state, cancellationToken);
+            await deviceServiceMock.Received(1).FetchAllDevicesByStateAsync(state, Arg.Any<int>(), Arg.Any<int>(), cancellationToken);
         }
 
         #endregion

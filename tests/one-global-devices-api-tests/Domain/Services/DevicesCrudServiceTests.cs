@@ -1,16 +1,16 @@
-﻿using FluentAssertions;
+﻿using System;
+using System.Collections.Generic;
+using System.Data.Common;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using FluentAssertions;
 using Microsoft.AspNetCore.Localization;
 using NSubstitute;
 using OneGlobalDevicesApi.Domain.Entities;
 using OneGlobalDevicesApi.Domain.Exceptions;
 using OneGlobalDevicesApi.Domain.Repositories;
 using OneGlobalDevicesApi.Domain.Services;
-using System;
-using System.Collections.Generic;
-using System.Data.Common;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OneGlobalDevicesApiTests.Domain.Services
 {
@@ -565,10 +565,10 @@ namespace OneGlobalDevicesApiTests.Domain.Services
             );
 
             // Act
-            var result = await devicesCrudService.FetchAllDevicesAsync(cancellationToken);
+            var result = await devicesCrudService.FetchAllDevicesAsync(cancellationToken: cancellationToken);
 
             // Assert
-            await deviceRepositoryMock.Received(1).FetchAllAsync(cancellationToken);
+            await deviceRepositoryMock.Received(1).FetchAllAsync(Arg.Any<int>(), Arg.Any<int>(), cancellationToken);
 
             result.Should().NotBeNull();
             result.First().Id.Should().Be(deviceId);
@@ -603,10 +603,10 @@ namespace OneGlobalDevicesApiTests.Domain.Services
             );
 
             // Act
-            var result = await devicesCrudService.FetchAllDevicesByBrandAsync(deviceBrand, cancellationToken);
+            var result = await devicesCrudService.FetchAllDevicesByBrandAsync(deviceBrand, cancellationToken: cancellationToken);
 
             // Assert
-            await deviceRepositoryMock.Received(1).FetchAllByBrandAsync(deviceBrand, cancellationToken);
+            await deviceRepositoryMock.Received(1).FetchAllByBrandAsync(deviceBrand, Arg.Any<int>(), Arg.Any<int>(), cancellationToken);
 
             result.Should().NotBeNull();
             result.First().Id.Should().Be(deviceId);
@@ -642,10 +642,10 @@ namespace OneGlobalDevicesApiTests.Domain.Services
             );
 
             // Act
-            var result = await devicesCrudService.FetchAllDevicesByStateAsync(deviceState, cancellationToken);
+            var result = await devicesCrudService.FetchAllDevicesByStateAsync(deviceState, cancellationToken: cancellationToken);
 
             // Assert
-            await deviceRepositoryMock.Received(1).FetchAllByStateAsync(deviceState, cancellationToken);
+            await deviceRepositoryMock.Received(1).FetchAllByStateAsync(deviceState, Arg.Any<int>(), Arg.Any<int>(), cancellationToken);
 
             result.Should().NotBeNull();
             result.First().Id.Should().Be(deviceId);
