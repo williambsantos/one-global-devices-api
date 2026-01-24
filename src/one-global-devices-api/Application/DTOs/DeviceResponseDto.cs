@@ -2,7 +2,7 @@
 
 namespace OneGlobalDevicesApi.Application.DTOs
 {
-    public class DeviceResponseDto
+    public record DeviceResponseDto
     {
         public Guid Id { get; init; }
         public string Name { get; init; } = string.Empty;
