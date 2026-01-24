@@ -77,7 +77,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             var objectResult = actionResponse.Result.Should().BeOfType<ObjectResult>().Subject;
             objectResult.StatusCode.Should().Be(400);
 
-            var problemDetails = objectResult.Value.Should().BeOfType<OneGlobalDevicesApi.Domain.Common.ProblemDetails>().Subject;
+            var problemDetails = objectResult.Value.Should().BeOfType<Microsoft.AspNetCore.Mvc.ProblemDetails>().Subject;
             problemDetails.Status.Should().Be(400);
             problemDetails.Title.Should().Be("Bad Request");
             problemDetails.Detail.Should().Contain(exception.Message);
@@ -91,7 +91,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             var objectResult = actionResponse.Result.Should().BeOfType<ObjectResult>().Subject;
             objectResult.StatusCode.Should().Be(404);
 
-            var problemDetails = objectResult.Value.Should().BeOfType<OneGlobalDevicesApi.Domain.Common.ProblemDetails>().Subject;
+            var problemDetails = objectResult.Value.Should().BeOfType<Microsoft.AspNetCore.Mvc.ProblemDetails>().Subject;
             problemDetails.Status.Should().Be(404);
             problemDetails.Title.Should().Be("Not Found");
         }
