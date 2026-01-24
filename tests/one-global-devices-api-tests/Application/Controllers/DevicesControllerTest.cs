@@ -74,14 +74,26 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             actionResponse.Should().NotBeNull();
             actionResponse.Result.Should().NotBeNull();
 
-            var badRequest = actionResponse.Result.Should().BeOfType<BadRequestObjectResult>().Subject;
-            badRequest.Value.Should().Be(exception.Message);
+            var objectResult = actionResponse.Result.Should().BeOfType<ObjectResult>().Subject;
+            objectResult.StatusCode.Should().Be(400);
+
+            var problemDetails = objectResult.Value.Should().BeOfType<OneGlobalDevicesApi.Domain.Common.ProblemDetails>().Subject;
+            problemDetails.Status.Should().Be(400);
+            problemDetails.Title.Should().Be("Bad Request");
+            problemDetails.Detail.Should().Contain(exception.Message);
         }
 
         private void AssertNotFound<T>(ActionResult<T> actionResponse)
         {
             actionResponse.Should().NotBeNull();
-            actionResponse.Result.Should().BeOfType<NotFoundResult>();
+            actionResponse.Result.Should().NotBeNull();
+
+            var objectResult = actionResponse.Result.Should().BeOfType<ObjectResult>().Subject;
+            objectResult.StatusCode.Should().Be(404);
+
+            var problemDetails = objectResult.Value.Should().BeOfType<OneGlobalDevicesApi.Domain.Common.ProblemDetails>().Subject;
+            problemDetails.Status.Should().Be(404);
+            problemDetails.Title.Should().Be("Not Found");
         }
 
         #endregion
@@ -648,8 +660,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             );
 
             // Assert
-            actionResponse.Should().NotBeNull();
-            actionResponse.Result.Should().BeOfType<NotFoundResult>();
+            AssertNotFound(actionResponse);
 
             await deviceServiceMock.Received(1).FetchSingleDeviceAsync(deviceId, cancellationToken);
         }
@@ -680,8 +691,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
             );
 
             // Assert
-            actionResponse.Should().NotBeNull();
-            actionResponse.Result.Should().BeOfType<NotFoundResult>();
+            AssertNotFound(actionResponse);
 
             await deviceServiceMock.Received(1).FetchSingleDeviceAsync(deviceId, cancellationToken);
         }
