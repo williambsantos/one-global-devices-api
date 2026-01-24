@@ -22,7 +22,7 @@ namespace OneGlobalDevicesApiTests.Domain.Services
         public async Task CreateNewDeviceAsync_Must_Fetch_And_Delete()
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var name = "IPHONE 17 PRO MAX";
             var brand = "Apple";
             var cancellationToken = new CancellationToken();
@@ -57,7 +57,7 @@ namespace OneGlobalDevicesApiTests.Domain.Services
         public async Task DeleteSingleDeviceAsync_Must_Fetch_And_Delete()
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var cancellationToken = new CancellationToken();
             var connectionMock = Substitute.For<DbConnection>();
             var transactionMock = Substitute.For<DbTransaction>();
@@ -100,7 +100,7 @@ namespace OneGlobalDevicesApiTests.Domain.Services
         public async Task DeleteSingleDeviceAsync_When_NotFound_Throw_Exception()
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var cancellationToken = new CancellationToken();
             var connectionMock = Substitute.For<DbConnection>();
             var transactionMock = Substitute.For<DbTransaction>();
@@ -146,7 +146,7 @@ namespace OneGlobalDevicesApiTests.Domain.Services
         public async Task DeleteSingleDeviceAsync_When_Fetch_In_Use_Throw_Exception()
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var cancellationToken = new CancellationToken();
             var connectionMock = Substitute.For<DbConnection>();
             var transactionMock = Substitute.For<DbTransaction>();
@@ -355,7 +355,7 @@ namespace OneGlobalDevicesApiTests.Domain.Services
             var cancellationToken = new CancellationToken();
 
             DeviceEntity? currentDevice = default;
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
 
             var newName = "Iphone 17 PRO MAX New";
             var newBrand = "Apple 2";
@@ -507,7 +507,7 @@ namespace OneGlobalDevicesApiTests.Domain.Services
         public async Task FetchSingleDeviceAsync_Must_Call_Repository()
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var cancellationToken = new CancellationToken();
 
             var deviceRepositoryMock = Substitute.For<IDeviceRepository>();
@@ -541,7 +541,7 @@ namespace OneGlobalDevicesApiTests.Domain.Services
         public async Task FetchAllDevicesAsync_Must_Call_Repository()
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var cancellationToken = new CancellationToken();
 
             var paginationRequest = new PaginationRequest { PageNumber = 1, PageSize = 100 };
@@ -586,7 +586,7 @@ namespace OneGlobalDevicesApiTests.Domain.Services
         public async Task FetchAllByBrandAsync_Must_Call_Repository()
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var deviceBrand = "Apple";
             var cancellationToken = new CancellationToken();
 
@@ -632,7 +632,7 @@ namespace OneGlobalDevicesApiTests.Domain.Services
         public async Task FetchAllByStateAsync_Must_Call_Repository()
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var deviceState = DeviceStateEnum.InUse;
             var cancellationToken = new CancellationToken();
 

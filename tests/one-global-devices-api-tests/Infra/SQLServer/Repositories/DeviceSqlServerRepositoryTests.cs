@@ -24,7 +24,7 @@ namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
             // Arrange
             var entity = new DeviceEntity
             {
-                Id = Guid.NewGuid(),
+                Id = DeviceEntity.CreateGuid(),
                 Name = "Test Device",
                 Brand = "Test Brand",
                 State = DeviceStateEnum.Available,
@@ -63,7 +63,7 @@ namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
             // Arrange
             var entity = new DeviceEntity
             {
-                Id = Guid.NewGuid(),
+                Id = DeviceEntity.CreateGuid(),
                 Name = "Test",
                 Brand = "Brand",
                 State = DeviceStateEnum.Available,
@@ -134,7 +134,7 @@ namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
             // Arrange
             var entity = new DeviceEntity
             {
-                Id = Guid.NewGuid(),
+                Id = DeviceEntity.CreateGuid(),
                 Name = "Updated Device",
                 Brand = "Updated Brand",
                 State = DeviceStateEnum.Inactive,
@@ -163,7 +163,7 @@ namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
         public async Task UpdateAsync_NullConnection_ThrowsArgumentNullException()
         {
             // Arrange
-            var entity = new DeviceEntity { Id = Guid.NewGuid(), Name = "Device", Brand = "Brand" };
+            var entity = new DeviceEntity { Id = DeviceEntity.CreateGuid(), Name = "Device", Brand = "Brand" };
             var loggerMock = Substitute.For<ILogger<DeviceSqlServerRepository>>();
             var databaseConnectionMock = Substitute.For<IDatabaseConnection>();
             var repository = new DeviceSqlServerRepository(loggerMock, databaseConnectionMock);
@@ -184,7 +184,7 @@ namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
             // Arrange
             var entity = new DeviceEntity
             {
-                Id = Guid.NewGuid(),
+                Id = DeviceEntity.CreateGuid(),
                 Name = "Device",
                 Brand = "Brand",
                 State = DeviceStateEnum.InUse,
@@ -220,7 +220,7 @@ namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
         public async Task DeleteAsync_ValidId_ExecutesDeleteCommand(int expected)
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var loggerMock = Substitute.For<ILogger<DeviceSqlServerRepository>>();
             var databaseConnectionMock = Substitute.For<IDatabaseConnection>();
             var dbConnectionMock = Substitute.For<DbConnection>().SetupCommands();
@@ -243,7 +243,7 @@ namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
         public async Task DeleteAsync_NullConnection_ThrowsArgumentNullException()
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var loggerMock = Substitute.For<ILogger<DeviceSqlServerRepository>>();
             var databaseConnectionMock = Substitute.For<IDatabaseConnection>();
             var repository = new DeviceSqlServerRepository(loggerMock, databaseConnectionMock);
@@ -262,7 +262,7 @@ namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
         public async Task DeleteAsync_NonExistentId_ReturnsZero(int expected)
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var loggerMock = Substitute.For<ILogger<DeviceSqlServerRepository>>();
             var databaseConnectionMock = Substitute.For<IDatabaseConnection>();
             var dbConnectionMock = Substitute.For<DbConnection>().SetupCommands();
@@ -293,7 +293,7 @@ namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
             {
                 new DeviceEntity
                 {
-                    Id = Guid.NewGuid(),
+                    Id = DeviceEntity.CreateGuid(),
                     Name = "Device1",
                     Brand = "Brand1",
                     State = DeviceStateEnum.Available,
@@ -301,7 +301,7 @@ namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
                 },
                 new DeviceEntity
                 {
-                    Id = Guid.NewGuid(),
+                    Id = DeviceEntity.CreateGuid(),
                     Name = "Device2",
                     Brand = "Brand2",
                     State = DeviceStateEnum.InUse,
@@ -392,7 +392,7 @@ namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
             {
                 new DeviceEntity
                 {
-                    Id = Guid.NewGuid(),
+                    Id = DeviceEntity.CreateGuid(),
                     Name = "Device1",
                     Brand = brand,
                     State = DeviceStateEnum.Available,
@@ -481,7 +481,7 @@ namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
             {
                 new DeviceEntity
                 {
-                    Id = Guid.NewGuid(),
+                    Id = DeviceEntity.CreateGuid(),
                     Name = "Device1",
                     Brand = "Brand1",
                     State = state,
@@ -567,7 +567,7 @@ namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
         public async Task FetchByIdAsync_ValidId_ReturnsDevice()
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var expectedDevice = new DeviceEntity
             {
                 Id = deviceId,
@@ -605,7 +605,7 @@ namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
         public async Task FetchByIdAsync_NonExistentId_ReturnsNull()
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var loggerMock = Substitute.For<ILogger<DeviceSqlServerRepository>>();
             var databaseConnectionMock = Substitute.For<IDatabaseConnection>();
             var dbConnectionMock = Substitute.For<DbConnection>().SetupCommands();
@@ -631,7 +631,7 @@ namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
         public async Task FetchByIdAsync_WithConnectionAndTransaction_ReturnsDevice()
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var expectedDevice = new DeviceEntity
             {
                 Id = deviceId,
@@ -665,7 +665,7 @@ namespace OneGlobalDevicesApi.Tests.Infra.SQLServer.Repositories
         public async Task FetchByIdAsync_WithTransaction_DoesNotCreateNewConnection()
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var expectedDevice = new DeviceEntity { Id = deviceId, Name = "Device", Brand = "Brand" };
 
             var loggerMock = Substitute.For<ILogger<DeviceSqlServerRepository>>();

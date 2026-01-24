@@ -1,13 +1,13 @@
+using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.OpenApi;
+using Microsoft.OpenApi;
+using OneGlobalDevicesApi.Domain.Entities;
 using OneGlobalDevicesApi.Domain.Repositories;
 using OneGlobalDevicesApi.Domain.Services;
 using OneGlobalDevicesApi.Infra.SQLServer.Connections;
 using OneGlobalDevicesApi.Infra.SQLServer.Repositories;
-using System.Text.Json.Serialization;
-using System.Diagnostics.CodeAnalysis;
 using Scalar.AspNetCore;
-using OneGlobalDevicesApi.Domain.Entities;
-using Microsoft.AspNetCore.OpenApi;
-using Microsoft.OpenApi;
 
 [ExcludeFromCodeCoverage]
 public class Program
@@ -17,6 +17,7 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
 
         // Add services to the container.
+        builder.Services.AddProblemDetails();
 
         builder.Services.AddControllers()
             .AddJsonOptions(options =>

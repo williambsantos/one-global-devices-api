@@ -4,8 +4,8 @@ namespace OneGlobalDevicesApi.Application.DTOs
 {
     public class PaginationRequestDTO
     {
-        public int Page { get; set; } = 1;
-        public int Size { get; set; } = 100;
+        public int? Page { get; set; } = 1;
+        public int? Size { get; set; } = 100;
     }
 
     public static class PaginationRequestDTOExtensions
@@ -15,10 +15,13 @@ namespace OneGlobalDevicesApi.Application.DTOs
             if (dto == null)
                 return new PaginationRequest();
 
+            if (dto.Page <= 0)
+                dto.Page = 1;
+
             return new PaginationRequest
             {
-                PageNumber = dto.Page,
-                PageSize = dto.Size
+                PageNumber = dto.Page ?? 1,
+                PageSize = dto.Size ?? 100
             };
         }
     }

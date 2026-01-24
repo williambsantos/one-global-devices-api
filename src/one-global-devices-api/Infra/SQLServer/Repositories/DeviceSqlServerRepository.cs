@@ -67,6 +67,7 @@ VALUES (@Id, @Name, @Brand, @State,@CreationTime);
 
             return await LogActionAsync(logPrefix, async () =>
             {
+                ArgumentNullException.ThrowIfNull(entity);
                 ArgumentNullException.ThrowIfNull(connection);
 
                 var sql = $@"
@@ -80,9 +81,9 @@ WHERE Id = @Id
 
                 var parameters = new
                 {
-                    Name = entity?.Name ?? string.Empty,
-                    Brand = entity?.Brand ?? string.Empty,
-                    Id = entity?.Id ?? Guid.Empty,
+                    Name = entity.Name ?? string.Empty,
+                    Brand = entity.Brand ?? string.Empty,
+                    Id = entity.Id,
                     State = entity?.State.ToString() ?? string.Empty
                 };
 

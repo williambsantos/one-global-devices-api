@@ -41,18 +41,17 @@ namespace OneGlobalDevicesApi.Application.Controllers
                     "name: {name}. " +
                     "brand: {brand}. " +
                     "error: {error}",
-                    request?.Name,
-                    request?.Brand,
+                    request.Name,
+                    request.Brand,
                     ex.Message
                 );
 
                 return this.BadRequestProblem(
                     detail: $"Failed to create new device: {ex.Message}",
-
-                    extensions: new Dictionary<string, object>
+                    extensions: new Dictionary<string, object?>
                     {
-                        ["name"] = request?.Name ?? string.Empty,
-                        ["brand"] = request?.Brand ?? string.Empty
+                        ["name"] = request.Name ?? string.Empty,
+                        ["brand"] = request.Brand ?? string.Empty
                     }
                 );
             }
@@ -96,8 +95,7 @@ namespace OneGlobalDevicesApi.Application.Controllers
 
                 return this.NotFoundProblem(
                     detail: $"Device with ID '{id}' not found",
-
-                    extensions: new Dictionary<string, object> { ["deviceId"] = id }
+                    extensions: new Dictionary<string, object?> { ["deviceId"] = id }
                 );
             }
             catch (Exception ex)
@@ -117,8 +115,7 @@ namespace OneGlobalDevicesApi.Application.Controllers
 
                 return this.BadRequestProblem(
                     detail: $"Failed to update device: {ex.Message}",
-
-                    extensions: new Dictionary<string, object>
+                    extensions: new Dictionary<string, object?>
                     {
                         ["deviceId"] = id,
                         ["newName"] = request?.NewName ?? string.Empty,
@@ -167,8 +164,7 @@ namespace OneGlobalDevicesApi.Application.Controllers
 
                 return this.NotFoundProblem(
                     detail: $"Device with ID '{id}' not found",
-
-                    extensions: new Dictionary<string, object> { ["deviceId"] = id }
+                    extensions: new Dictionary<string, object?> { ["deviceId"] = id }
                 );
             }
             catch (Exception ex)
@@ -188,8 +184,7 @@ namespace OneGlobalDevicesApi.Application.Controllers
 
                 return this.BadRequestProblem(
                     detail: $"Failed to update device: {ex.Message}",
-
-                    extensions: new Dictionary<string, object>
+                    extensions: new Dictionary<string, object?>
                     {
                         ["deviceId"] = id,
                         ["newName"] = request?.NewName ?? string.Empty,
@@ -227,8 +222,7 @@ namespace OneGlobalDevicesApi.Application.Controllers
 
                 return this.NotFoundProblem(
                     detail: $"Device with ID '{id}' not found",
-
-                    extensions: new Dictionary<string, object> { ["deviceId"] = id }
+                    extensions: new Dictionary<string, object?> { ["deviceId"] = id }
                 );
             }
             catch (Exception ex)
@@ -242,8 +236,7 @@ namespace OneGlobalDevicesApi.Application.Controllers
 
                 return this.BadRequestProblem(
                     detail: $"Failed to delete device: {ex.Message}",
-
-                    extensions: new Dictionary<string, object> { ["deviceId"] = id }
+                    extensions: new Dictionary<string, object?> { ["deviceId"] = id }
                 );
             }
         }
@@ -269,8 +262,7 @@ namespace OneGlobalDevicesApi.Application.Controllers
 
                     return this.NotFoundProblem(
                         detail: $"Device with ID '{id}' not found",
-
-                        extensions: new Dictionary<string, object> { ["deviceId"] = id }
+                        extensions: new Dictionary<string, object?> { ["deviceId"] = id }
                     );
                 }
 
@@ -289,8 +281,7 @@ namespace OneGlobalDevicesApi.Application.Controllers
 
                 return this.NotFoundProblem(
                     detail: $"Device with ID '{id}' not found",
-
-                    extensions: new Dictionary<string, object> { ["deviceId"] = id }
+                    extensions: new Dictionary<string, object?> { ["deviceId"] = id }
                 );
             }
             catch (Exception ex)
@@ -304,8 +295,7 @@ namespace OneGlobalDevicesApi.Application.Controllers
 
                 return this.BadRequestProblem(
                     detail: $"Failed to fetch device: {ex.Message}",
-
-                    extensions: new Dictionary<string, object> { ["deviceId"] = id }
+                    extensions: new Dictionary<string, object?> { ["deviceId"] = id }
                 );
             }
         }
@@ -344,8 +334,7 @@ namespace OneGlobalDevicesApi.Application.Controllers
 
                 return this.BadRequestProblem(
                     detail: $"Failed to fetch devices: {ex.Message}",
-
-                    extensions: new Dictionary<string, object>
+                    extensions: new Dictionary<string, object?>
                     {
                         ["brand"] = brand ?? string.Empty,
                         ["state"] = state.HasValue ? state.Value.ToString() : string.Empty

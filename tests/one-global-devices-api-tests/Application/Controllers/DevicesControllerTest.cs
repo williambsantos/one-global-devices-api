@@ -104,7 +104,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
         public async Task CreateNewDeviceAsync_Must_Ok()
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var name = "IPHONE 17 PRO MAX";
             var brand = "Apple";
             var cancellationToken = new CancellationToken();
@@ -154,7 +154,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
         public async Task CreateNewDeviceAsync_When_ERROR_Log_And_BadRequest()
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var name = "IPHONE 17 PRO MAX";
             var brand = "Apple";
             var cancellationToken = new CancellationToken();
@@ -204,7 +204,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
         public async Task FullyUpdateDeviceAsync_Must_Ok()
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var newName = "IPHONE 17 PRO MAX";
             var newBrand = "Apple";
             var newState = DeviceStateEnum.InUse;
@@ -251,7 +251,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
         public async Task FullyUpdateDeviceAsync_When_KeyNotFound_Log_And_NotFound()
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var newName = "IPHONE 17 PRO MAX";
             var newBrand = "Apple";
             var newState = DeviceStateEnum.InUse;
@@ -303,7 +303,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
         public async Task FullyUpdateDeviceAsync_When_ERROR_Log_And_BadRequest()
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var newName = "IPHONE 17 PRO MAX";
             var newBrand = "Apple";
             var newState = DeviceStateEnum.InUse;
@@ -356,7 +356,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
         public async Task PartiallyUpdateDeviceAsync_Must_Ok()
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var newName = "IPHONE 17 PRO MAX";
             var newBrand = "Apple";
             var newState = DeviceStateEnum.InUse;
@@ -403,7 +403,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
         public async Task PartiallyUpdateDeviceAsync_When_KeyNotFound_Log_And_NotFound()
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var newName = "IPHONE 17 PRO MAX";
             var newBrand = "Apple";
             var newState = DeviceStateEnum.InUse;
@@ -455,7 +455,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
         public async Task PartiallyUpdateDeviceAsync_When_ERROR_Log_And_BadRequest()
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var newName = "IPHONE 17 PRO MAX";
             var newBrand = "Apple";
             var newState = DeviceStateEnum.InUse;
@@ -508,7 +508,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
         public async Task DeleteSingleDevice_Must_Ok()
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var cancellationToken = new CancellationToken();
 
             var loggerMock = Substitute.For<ILogger<DevicesController>>();
@@ -537,7 +537,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
         public async Task DeleteSingleDevice_When_KeyNotFoundException_Log_And_NotFound()
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var cancellationToken = new CancellationToken();
             var exception = new KeyNotFoundException("some exception");
 
@@ -567,7 +567,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
         public async Task DeleteSingleDevice_When_ERROR_Log_And_BadRequest()
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var cancellationToken = new CancellationToken();
 
             var exception = new Exception("some exception");
@@ -602,7 +602,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
         public async Task FetchSingleDevice_Must_Ok()
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var cancellationToken = new CancellationToken();
 
             var device = new DeviceEntity
@@ -638,7 +638,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
         public async Task FetchSingleDevice_When_Return_Null_Call_NotFound()
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var cancellationToken = new CancellationToken();
 
             DeviceEntity? device = null;
@@ -669,7 +669,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
         public async Task FetchSingleDevice_When_Exception_KeyNotFound_Call_NotFound()
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var cancellationToken = new CancellationToken();
 
             var loggerMock = Substitute.For<ILogger<DevicesController>>();
@@ -700,7 +700,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
         public async Task FetchSingleDevice_When_Exception_Exception_Call_BadRequest()
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var cancellationToken = new CancellationToken();
             var exception = new Exception("some exception");
             var loggerMock = Substitute.For<ILogger<DevicesController>>();
@@ -733,7 +733,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
         public async Task FetchAllDevices_Must_Ok()
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var cancellationToken = new CancellationToken();
             var paginationRequestDTO = new PaginationRequestDTO
             {
@@ -786,7 +786,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
         public async Task FetchAllDevices_When_Exception_Exception_Call_BadRequest()
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var cancellationToken = new CancellationToken();
             var paginationRequestDTO = new PaginationRequestDTO
             {
@@ -838,7 +838,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
         public async Task FetchAllDevicesByBrand_Must_Ok()
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var cancellationToken = new CancellationToken();
             var paginationRequestDTO = new PaginationRequestDTO
             {
@@ -893,7 +893,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
         public async Task FetchAllDevicesByBrandAsync_When_Exception_Exception_Call_BadRequest()
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var cancellationToken = new CancellationToken();
             var paginationRequestDTO = new PaginationRequestDTO
             {
@@ -947,7 +947,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
         public async Task FetchAllDevicesByStateAsync_Must_Ok()
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var cancellationToken = new CancellationToken();
             var paginationRequestDTO = new PaginationRequestDTO
             {
@@ -1002,7 +1002,7 @@ namespace OneGlobalDevicesApiTests.Application.Controllers
         public async Task FetchAllDevicesByStateAsync_When_Exception_Exception_Call_BadRequest()
         {
             // Arrange
-            var deviceId = Guid.NewGuid();
+            var deviceId = DeviceEntity.CreateGuid();
             var cancellationToken = new CancellationToken();
             var paginationRequestDTO = new PaginationRequestDTO
             {

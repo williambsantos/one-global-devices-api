@@ -7,74 +7,65 @@ namespace OneGlobalDevicesApi.Application.Extensions
     /// </summary>
     public static class ControllerExtensions
     {
-        /// <summary>
-        /// Gets the current request path, or null if HttpContext is not available (e.g., in unit tests).
-        /// </summary>
-        private static string? GetRequestPath(this ControllerBase controller)
+        public static ObjectResult BadRequestProblem(this ControllerBase controller,
+            string detail, string? instance = null, Dictionary<string, object?>? extensions = null
+        )
+            => controller.ProblemDetails(
+                StatusCodes.Status400BadRequest,
+                detail, instance, extensions
+            );
+
+        public static ObjectResult NotFoundProblem(this ControllerBase controller,
+            string detail, string? instance = null, Dictionary<string, object?>? extensions = null
+        )
+            => controller.ProblemDetails(
+                StatusCodes.Status404NotFound,
+                detail, instance, extensions
+            );
+
+        public static ObjectResult ProblemDetails(this ControllerBase controller, int statusCode, string detail, string? instance = null, Dictionary<string, object?>? extensions = null)
         {
-            return controller.HttpContext?.Request?.Path.ToString();
+            instance ??= GetProblemDetailsDefaultInstance(controller);
+            var title = GetProblemDetailsTitle(statusCode);
+            var type = GetProblemDetailsType(statusCode);
+
+            return controller.Problem(
+                detail: detail,
+                instance: instance,
+                statusCode: statusCode,
+                title: title,
+                type: type,
+                extensions: extensions
+            );
         }
 
-        /// <summary>
-        /// Creates an ObjectResult with the specified ProblemDetails and sets the appropriate status code.
-        /// </summary>
-        public static ObjectResult Problem(this ControllerBase controller, Domain.Common.ProblemDetails problemDetails)
+        private static string? GetProblemDetailsDefaultInstance(ControllerBase controller)
+            => controller.HttpContext?.Request?.Path.ToString();
+
+        private static string GetProblemDetailsType(int statusCode)
         {
-            return new ObjectResult(problemDetails)
+            return statusCode switch
             {
-                StatusCode = problemDetails.Status,
-                ContentTypes = { "application/problem+json" }
+                StatusCodes.Status400BadRequest => "https://tools.ietf.org/html/rfc9110#section-15.5.1",
+                StatusCodes.Status404NotFound => "https://tools.ietf.org/html/rfc9110#section-15.5.4",
+                StatusCodes.Status500InternalServerError => "https://tools.ietf.org/html/rfc9110#section-15.6.1",
+                StatusCodes.Status409Conflict => "https://tools.ietf.org/html/rfc9110#section-15.5.8",
+                StatusCodes.Status422UnprocessableEntity => "https://tools.ietf.org/html/rfc4918#section-11.2",
+                _ => "about:blank",
             };
         }
 
-        /// <summary>
-        /// Creates a Bad Request (400) response with RFC 9457 Problem Details.
-        /// </summary>
-        public static ObjectResult BadRequestProblem(this ControllerBase controller, string detail, string? instance = null, Dictionary<string, object>? extensions = null)
+        private static string GetProblemDetailsTitle(int statusCode)
         {
-            instance ??= controller.GetRequestPath();
-            var problemDetails = Domain.Common.ProblemDetails.BadRequest(detail, instance, extensions);
-            return controller.Problem(problemDetails);
-        }
-
-        /// <summary>
-        /// Creates a Not Found (404) response with RFC 9457 Problem Details.
-        /// </summary>
-        public static ObjectResult NotFoundProblem(this ControllerBase controller, string detail, string? instance = null, Dictionary<string, object>? extensions = null)
-        {
-            instance ??= controller.GetRequestPath();
-            var problemDetails = Domain.Common.ProblemDetails.NotFound(detail, instance, extensions);
-            return controller.Problem(problemDetails);
-        }
-
-        /// <summary>
-        /// Creates an Internal Server Error (500) response with RFC 9457 Problem Details.
-        /// </summary>
-        public static ObjectResult InternalServerErrorProblem(this ControllerBase controller, string detail, string? instance = null, Dictionary<string, object>? extensions = null)
-        {
-            instance ??= controller.GetRequestPath();
-            var problemDetails = Domain.Common.ProblemDetails.InternalServerError(detail, instance, extensions);
-            return controller.Problem(problemDetails);
-        }
-
-        /// <summary>
-        /// Creates a Conflict (409) response with RFC 9457 Problem Details.
-        /// </summary>
-        public static ObjectResult ConflictProblem(this ControllerBase controller, string detail, string? instance = null, Dictionary<string, object>? extensions = null)
-        {
-            instance ??= controller.GetRequestPath();
-            var problemDetails = Domain.Common.ProblemDetails.Conflict(detail, instance, extensions);
-            return controller.Problem(problemDetails);
-        }
-
-        /// <summary>
-        /// Creates an Unprocessable Entity (422) response with RFC 9457 Problem Details.
-        /// </summary>
-        public static ObjectResult UnprocessableEntityProblem(this ControllerBase controller, string detail, string? instance = null, Dictionary<string, object>? extensions = null)
-        {
-            instance ??= controller.GetRequestPath();
-            var problemDetails = Domain.Common.ProblemDetails.UnprocessableEntity(detail, instance, extensions);
-            return controller.Problem(problemDetails);
+            return statusCode switch
+            {
+                StatusCodes.Status400BadRequest => "Bad Request",
+                StatusCodes.Status404NotFound => "Not Found",
+                StatusCodes.Status500InternalServerError => "Internal Server Error",
+                StatusCodes.Status409Conflict => "Conflict",
+                StatusCodes.Status422UnprocessableEntity => "Unprocessable Entity",
+                _ => "Unknown",
+            };
         }
     }
 }

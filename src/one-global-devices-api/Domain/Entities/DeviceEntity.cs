@@ -2,7 +2,9 @@
 {
     public class DeviceEntity
     {
-        public Guid Id { get; init; } = Guid.NewGuid();
+        public static Guid CreateGuid() => Guid.CreateVersion7();
+
+        public Guid Id { get; init; } = CreateGuid();
         public required string Name { get; set; }
         public required string Brand { get; set; }
 
